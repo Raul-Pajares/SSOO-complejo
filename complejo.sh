@@ -1,1 +1,2 @@
-hola; hello;
+#!/bin/bash
+exit 0
