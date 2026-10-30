@@ -1,2 +1,24 @@
 #!/bin/bash
+PasarACoordenadasPolares{
+}
+PasarACoordenadasRectangulares{
+}
+SumaRectangulares{
+}
+SumaPolares{
+}
+RestaRectangulares{
+}
+RestaPolares{
+}
+MultiplicaRectangulares{
+}
+MultiplicaPolares{
+}
+DivideRectangulares{
+}
+DividePolares{
+}
+AydaComando{
+}
 exit 0
