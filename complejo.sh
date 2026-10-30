@@ -260,28 +260,19 @@ function DivideRectangulares {
     exit 1 #o return 1, ya vere si hay que cambiarlo
     fi
 
-    local x1=$1
-    local y1=$2
-    local x2=$3
-    local y2=$4
+    rectangulares_a_polares $1 $2 #paso a polares la primera
+    local modulo1=$r
+    local angulo1=$ang
 
-    local modulo1
-    local angulo1
-    local modulo2
-    local angulo2
+    rectangulares_a_polares $3 $4 #paso a polares la segunda
+    local modulo2=$r
+    local angulo2=$ang
 
-    rectangulares_a_polares $x1 $y1 #paso a polares la primera
-    modulo1=$r
-    angulo1=$ang
-
-    rectangulares_a_polares $x2 $y2 #paso a polares la segunda
-    modulo2=$r
-    angulo2=$ang
-
-    r=$(echo "scale=2; $modulo1 / $modulo2" | bc -l)
-    ang=$(echo "scale=2; $angulo1 - $angulo2" | bc -l)
+    DividePolares $modulo1 $angulo1 $modulo2 $angulo2
 
     polares_a_rectangulares $r $ang
+
+    return 0
 
 }
 function DividePolares {
@@ -297,7 +288,7 @@ function DividePolares {
 }
 
 # Escribe el número complejo x+iy como "a+bi" o "a-bi".
-function texto_rectangulares{
+function texto_rectangulares {
     #Cogemos los valores de los parámetros y los guardamos en variables locales
     local TR_X=$1
     local TR_Y=$2
@@ -340,6 +331,41 @@ function TextoPolares {
 function es_cero {
     test "$(echo "($1) == 0" | bc -l)" = 1
 }
+
+    
+# fmt valor
+#   Redondea "valor" a DECIMALES decimales y lo escribe. Evita el "-0.0000".
+
+# comprueba_numeros n1 n2 ...
+#   Comprueba que todos los argumentos son números válidos (con es_numero).
+#   Devuelve 0 si lo son y 1 si alguno no lo es, avisando con error.
+
+# ejecuta_opcion opcion operandos...
+#   Gestiona las opciones -p, -r, -sr, -sp, -rr, -rp, -mr, -mp, -dr y -dp.
+#   Comprueba el número de operandos y que sean números, llama a la operación
+#   y escribe el resultado. Devuelve 0 si va bien, 1 si falla la operación
+#   (por ejemplo, división por cero) y 2 si el uso es incorrecto.
+
+# recorta "texto"
+#   Deja en RECORTADO el texto sin espacios al principio ni al final.
+
+# parse_operando "texto"
+#   Analiza un complejo escrito como "a+bi" (o con j), "bi", real puro o
+#   polar "mod arg". Deja el tipo en P_T (r o p) y los valores en P_A y P_B.
+#   Devuelve 1 si el texto no es un complejo válido.
+
+# evalua_expresion "(op1)operador(op2)"
+#   Separa los dos operandos y el operador, calcula y escribe
+#   "expresión = resultado". Si los dos operandos son polares el resultado
+#   sale en polares; en cualquier otro caso, en rectangulares.
+
+# procesa_linea "línea"
+#   Trata una línea del fichero. Ignora las vacías y las que empiezan por #,
+#   cambia la unidad con "grados" o "radianes" y evalúa el resto.
+
+# procesa_fichero fichero
+#   Lee el fichero línea a línea y llama a procesa_linea con cada una.
+#   Devuelve 0 si todas fueron bien y 1 si alguna dio error.
 
 exit 0;
 
