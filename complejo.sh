@@ -1,5 +1,8 @@
 #!/bin/bash
 
+ANGULO=grados
+NOMBRE=${0##*/} #deja solo el fichero, $0 es el path completo del script, ##/ quita todo hasta la última barra, dejando solo el nombre del script
+
 function error {
     echo "$NOMBRE: error: $*" >&2 #Se redirige al canal de errores
 }
@@ -47,14 +50,6 @@ function uso {
     echo "  otro caso, en rectangulares."
 }
 
-function PasarACoordenadasPolares { #PENDIENTE DE REVISION
-x=$1 #la x a la que hacerle el modulo
-y=$2 #la y a la que hacerle el modulo
-(scale=2) #he ajustado la precision a 2 decimales(eso se le envia al bc)
-r=$(echo "scale=2; sqrt(($x^2)+($y^2))" | bc -l)
-fi=$(echo "scale=2; arctan($y/$x)" | bc -l)
-return 0
-
 # es_numero valor
 # Comprueba si "valor" es un número decimal válido
 # Devuelve 0 si lo es y 1 si no.
@@ -75,13 +70,77 @@ function es_numero {
 }
 
 
-function PasarACoordenadasRectangulares { #FALTA POR HACER
-    m=$1 #el modulo 
-    a=$2 #el argumento
-    x=$(echo "scale=2; $m * c($a)" | bc -l)
-    y=$(echo "scale=2; $m * s($a)" | bc -l)
+# calc "expresión"
+#   Ejecuta la cuenta con bc y escribe el resultado.
+#   Deja definidos pi y k para poder usarlos en la expresión.
+function calc {
+    # k convierte la unidad actual a radianes:
+    #   en grados   -> k = pi/180
+    #   en radianes -> k = 1
+    if test "$ANGULO" = grados; then #este angulo definido en la parte superior del script es el que se puede cambiar con los parametros -grad y -rad
+        C_K="pi / 180"
+    else
+        C_K=1
+    fi
+    # Se manda a bc por una tubería
+    echo "scale = 20; pi = 4 * a(1); k = $C_K; $1" | bc -l
+}
+
+# mayor a b
+#   Devuelve 0 (éxito) si a > b y 1 si no.
+#   test solo compara enteros, así que la comparación la hace bc.
+function mayor {
+    test "$(echo "($1) > ($2)" | bc -l)" = 1
+}
+
+function rectangulares_a_polares { #PENDIENTE DE REVISION
+##BORRAR
+x=$1 #la x a la que hacerle el modulo
+y=$2 #la y a la que hacerle el modulo
+(scale=2) #he ajustado la precision a 2 decimales(eso se le envia al bc)
+r=$(echo "scale=2; sqrt(($x^2)+($y^2))" | bc -l)
+ang=$(echo "scale=2; arctan($y/$x)" | bc -l)
+##BORRAR
+
+#HECHO CON calc
+r=$(calc "sqrt(($1^2)+($2^2))")
+
+    # El ángulo se calcula primero en radianes, según el cuadrante
+    if mayor "$1" 0; then                          # x > 0
+        ang=$(calc "a(($2) / ($1))")
+    elif mayor 0 "$1"; then                        # x < 0
+        if mayor 0 "$2"; then                      #   y < 0
+            ang=$(calc "a(($2) / ($1)) - pi")
+        else                                       #   y >= 0
+            ang=$(calc "a(($2) / ($1)) + pi")
+        fi
+    else                                           # x = 0
+        if mayor "$2" 0; then                      #   y > 0
+            ang=$(calc "pi / 2")
+        elif mayor 0 "$2"; then                    #   y < 0
+            ang=$(calc "-pi / 2")
+        else                                       #   y = 0 (el origen)
+            ang=0
+        fi
+    fi
+
+    # Si se trabaja en grados, se pasa de radianes a grados
+    if test "$ANGULO" = grados; then
+        ang=$(calc "($ang) * 180 / pi")
+    fi
+
     return 0
 }
+
+function polares_a_rectangulares { ##FALTA POR ACTUALIZAR
+    m=$1 #el modulo 
+    a=$2 #el argumento (en grados)
+    #se pasa el argumento y se pasa a radianes con 4*a(1)=pi y se calcula el coseno
+    x=$(echo "scale=20; $m * c($a * 4 * a(1)/180)" | bc -l) #se pasa el argumento y se pasa a radianes con 4*a(1)=pi y se calcula el coseno
+    y=$(echo "scale=20; $m * s($a * 4 * a(1)/180)" | bc -l)
+    return 0
+}
+
 function SumaRectangulares {
 }
 function SumaPolares {
