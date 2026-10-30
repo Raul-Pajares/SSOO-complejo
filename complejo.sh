@@ -165,7 +165,22 @@ function SumaRectangulares {
 }
 
 function SumaPolares {
+    polares_a_rectangulares $1 $2
+    local x1=$x
+    local y1=$y
+    
+    polares_a_rectangulares $3 $4
+
+    local x2=$x
+    local y2=$y
+
+    SumaRectangulares $x1 $y1 $x2 $y2
+
+    rectangulares_a_polares $x $y
+
+    return 0
 }
+
 function RestaRectangulares {
     if [ $# -ne 4 ]; then
     echo "Error, la funcion necesita 4 parmetros." 
