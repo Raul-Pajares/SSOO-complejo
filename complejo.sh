@@ -142,6 +142,7 @@ function polares_a_rectangulares { ##FALTA POR ACTUALIZAR
 }
 
 function SumaRectangulares {
+
 }
 function SumaPolares {
 }
