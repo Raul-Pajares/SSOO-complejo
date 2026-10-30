@@ -1,2 +1,6 @@
 #!/bin/bash
-exit 0
+function error{
+    echo "$NOMBRE: error: $*" >&2 #Se redirige al canal de errores
+}
+
+exit
