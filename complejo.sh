@@ -167,8 +167,22 @@ function SumaRectangulares {
 function SumaPolares {
 }
 function RestaRectangulares {
+    if [ $# -ne 4 ]; then
+    echo "Error, la funcion necesita 4 parmetros." 
+    exit 1 #o return 1, ya vere si hay que cambiarlo
+    fi
+    local x1=$1
+    local y1=$2
+    local x2=$3
+    local y2=$4
+
+    #Calculo de coordenadas parte real#
+    x=$(echo "scale=2; $x1 - $x2" | bc -l)
+    #Calculo de coordenadas parte imaginaria#
+    y=$(echo "scale=2; $y1 - $y2" | bc -l)
 }
 function RestaPolares {
+
 }
 function MultiplicaRectangulares {
 }
