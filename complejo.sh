@@ -307,6 +307,34 @@ function texto_rectangulares{
     esac
 }
 
+# Escribe el número complejo x+iy como "a+bi" o "a-bi".
+function TextoPolares {
+    #guardado en variables locales, aunque no se por que hay que guardarlos
+    local TP_M=$1
+    local TP_A=$2
+    local FlagRadianess=$3
+    local es_mayor
+    if es_cero $FlagRadianes; then #esta en radianes, pero como el flag es 0 lo quiero en grados 
+
+        TP_A=$(echo "scale=2; $TP_A*180/$pi" | bc -l) #lo paso a grados
+        es_mayor=$(echo "$TP_A >= 360" | bc -l) #miro si da mas de una vuelta
+        if es_cero $es_mayor; then #si no da mas de una vuelta no hago nada
+        else
+        TP_A=$(echo "scale=2; $TP_A - 360" | bc -l) #si da mas de una vuelta le resto lo que le sobra
+        fi
+        echo "$TP_M $TP_A" #imprimo las dos partes
+
+    else #como el flag es 1 lo quiero en radianes
+        es_mayor=$(echo "$TP_A >= (2*$pi)" | bc -l) #miro si da mas de una vuelta
+        if es_cero $es_mayor; then #si no da mas de una vuelta no hago nada
+        else
+        TP_A=$(echo "scale=2; $TP_A - (2*$pi)" | bc -l) # si da mas de una vuelta le resto lo que le sobra
+    fi
+    echo "$TP_M $TP_A" #imprimo las dos partes
+    fi
+    
+}
+
 # es_cero valor
 #   Devuelve 0 (éxito) si el valor es exactamente 0, aunque se escriba 0.0 o -0.
 function es_cero {
