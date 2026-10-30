@@ -1,7 +1,9 @@
 #!/bin/bash
-function error{
+
+function error {
     echo "$NOMBRE: error: $*" >&2 #Se redirige al canal de errores
 }
+
 function uso {
     echo "Uso:"
     echo "  $NOMBRE [-grad|-rad] OPCION operandos..."
@@ -43,8 +45,27 @@ function uso {
     echo "  # las líneas vacías y las que empiezan por # se ignoran"
     echo "  Con dos operandos polares el resultado sale en polares; en cualquier"
     echo "  otro caso, en rectangulares."
-
 }
+
+# es_numero valor
+# Comprueba si "valor" es un número decimal válido
+# Devuelve 0 si lo es y 1 si no.
+function es_numero {
+    local EN_N=$1 #numero con signo
+    local EN_R #numero sin signo
+    case $EN_N in
+        #Si empieza por un signo, lo quita para la comprobación
+        [+-]*) EN_R=${EN_N#?} ;; # quita el signo inicial
+        *)     EN_R=$EN_N ;;
+    esac
+
+    case $EN_R in
+        ""|*[!0-9.]*|*.*.*) return 1 ;; # vacío, caracteres raros o 2 puntos
+        *[0-9]*)            return 0 ;; # al menos un dígito
+    esac
+    return 1
+}
+
 PasarACoordenadasPolares{
 }
 PasarACoordenadasRectangulares{
