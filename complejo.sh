@@ -296,6 +296,17 @@ function DividePolares {
     return 0
 }
 
+# Escribe el número complejo x+iy como "a+bi" o "a-bi".
+function texto_rectangulares{
+    #Cogemos los valores de los parámetros y los guardamos en variables locales
+    local TR_X=$1
+    local TR_Y=$2
+    case $TR_Y in
+        -*) echo "$TR_X$TR_Y"i ;;     # la imaginaria ya trae el "-"
+        *)  echo "$TR_X+$TR_Y"i ;;    # hay que poner el "+"
+    esac
+}
+
 # es_cero valor
 #   Devuelve 0 (éxito) si el valor es exactamente 0, aunque se escriba 0.0 o -0.
 function es_cero {
