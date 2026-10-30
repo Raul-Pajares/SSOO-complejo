@@ -196,9 +196,24 @@ function RestaRectangulares {
     #Calculo de coordenadas parte imaginaria#
     y=$(echo "scale=2; $y1 - $y2" | bc -l)
 }
-function RestaPolares {
 
+function RestaPolares {
+    polares_a_rectangulares $1 $2
+    local x1=$x
+    local y1=$y
+    
+    polares_a_rectangulares $3 $4
+
+    local x2=$x
+    local y2=$y
+
+    RestaRectangulares $x1 $y1 $x2 $y2
+
+    rectangulares_a_polares $x $y
+
+    return 0
 }
+
 function MultiplicaRectangulares {
 }
 function MultiplicaPolares {
