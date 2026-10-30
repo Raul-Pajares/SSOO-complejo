@@ -301,13 +301,12 @@ function texto_rectangulares {
 # Escribe el número complejo x+iy como "a+bi" o "a-bi".
 function TextoPolares {
     #guardado en variables locales, aunque no se por que hay que guardarlos
-    local TP_M=$1
-    local TP_A=$2
-    local FlagRadianess=$3
+    local TP_M=$1 #modulo
+    local TP_A=$2 #argumento
     local es_mayor
-    if es_cero $FlagRadianes; then #esta en radianes, pero como el flag es 0 lo quiero en grados 
+    if test $ANGULO = "grados"; then #esta en radianes, pero como el flag es 0 lo quiero en grados 
 
-        TP_A=$(echo "scale=2; $TP_A*180/$pi" | bc -l) #lo paso a grados
+        TP_A=$(echo "scale=20; $TP_A*180/(4*a(1))" | bc -l) #lo paso a grados
         es_mayor=$(echo "$TP_A >= 360" | bc -l) #miro si da mas de una vuelta
         if es_cero $es_mayor; then #si no da mas de una vuelta no hago nada
         else
@@ -325,6 +324,40 @@ function TextoPolares {
     fi
     
 }
+##HECHO POR RAÚL
+
+# Escribe el número complejo x+iy como "a+bi" o "a-bi".
+
+#Se va a utilizar la convención del angulo que se representa desde -mediavuelta, mediavuelta
+function texto_polares {
+    normaliza "$2" #se normaliza el angulo para que quede entre -mediavuelta y mediavuelta
+    echo "$(fmt "$1")_$(fmt "$ANG") $ANGULO"
+    return 0
+}
+
+function normaliza {
+    local NZ_A=$1
+    local NZ_M
+    if test "$ANGULO" = grados; then
+        NZ_M=180
+    else
+        NZ_M=$(calc "pi")
+    fi
+
+    local NZ_V=$(calc "2 * $NZ_M")                 # una vuelta completa
+
+    while mayor "$NZ_A" "$NZ_M"; do                # mientras ang > media vuelta
+        NZ_A=$(calc "($NZ_A) - ($NZ_V)")           #   le quito una vuelta
+    done
+    until mayor "$NZ_A" "-$NZ_M"; do               # hasta que ang > -media vuelta
+        NZ_A=$(calc "($NZ_A) + ($NZ_V)")           #   le añado una vuelta
+    done
+
+    ANG=$NZ_A
+
+    return 0
+}
+
 
 # es_cero valor
 #   Devuelve 0 (éxito) si el valor es exactamente 0, aunque se escriba 0.0 o -0.
@@ -332,7 +365,7 @@ function es_cero {
     test "$(echo "($1) == 0" | bc -l)" = 1
 }
 
-    
+
 # fmt valor
 #   Redondea "valor" a DECIMALES decimales y lo escribe. Evita el "-0.0000".
 
