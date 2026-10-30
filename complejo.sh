@@ -162,6 +162,8 @@ function SumaRectangulares {
     x=$(echo "scale=2; $x1 + $x2" | bc -l)
     #Calculo de coordenadas parte imaginaria#
     y=$(echo "scale=2; $y1 + $y2" | bc -l)
+    
+    return 0
 }
 
 function SumaPolares {
@@ -195,6 +197,8 @@ function RestaRectangulares {
     x=$(echo "scale=2; $x1 - $x2" | bc -l)
     #Calculo de coordenadas parte imaginaria#
     y=$(echo "scale=2; $y1 - $y2" | bc -l)
+    
+    return 0
 }
 
 function RestaPolares {
@@ -215,12 +219,41 @@ function RestaPolares {
 }
 
 function MultiplicaRectangulares {
+
+    rectangulares_a_polares $1 $2
+    local m1=$r
+    local a1=$ang
+
+    rectangulares_a_polares $3 $4
+    local m2=$r
+    local a2=$ang
+
+    MultiplicaPolares $m1 $a1 $m2 $a2
+
+    polares_a_rectangulares $r $ang
+
+    return 0
 }
 function MultiplicaPolares {
 }
 function DivideRectangulares {
 }
 function DividePolares {
+    if es_cero "$3"; then
+        error "división por cero"
+        return 1
+    fi
+
+    r=$(echo "scale=20; $1 / $3" | bc -l)
+    ang=$(echo "scale=20; $2 - $4" | bc -l)
+
+    return 0
+}
+
+# es_cero valor
+#   Devuelve 0 (éxito) si el valor es exactamente 0, aunque se escriba 0.0 o -0.
+function es_cero {
+    test "$(echo "($1) == 0" | bc -l)" = 1
 }
 
 exit 0;
