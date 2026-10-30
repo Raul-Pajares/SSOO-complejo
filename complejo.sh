@@ -133,11 +133,18 @@ r=$(calc "sqrt(($1^2)+($2^2))")
 }
 
 function polares_a_rectangulares { ##FALTA POR ACTUALIZAR
+    ##BORRAR
     m=$1 #el modulo 
     a=$2 #el argumento (en grados)
     #se pasa el argumento y se pasa a radianes con 4*a(1)=pi y se calcula el coseno
     x=$(echo "scale=20; $m * c($a * 4 * a(1)/180)" | bc -l) #se pasa el argumento y se pasa a radianes con 4*a(1)=pi y se calcula el coseno
     y=$(echo "scale=20; $m * s($a * 4 * a(1)/180)" | bc -l)
+    
+    ##BORRAR
+
+    #HECHO CON calc
+    x=$(calc "$1 * c(($2) * k)")
+    y=$(calc "$1 * s(($2) * k)")
     return 0
 }
 
