@@ -46,6 +46,7 @@ function uso {
     echo "  Con dos operandos polares el resultado sale en polares; en cualquier"
     echo "  otro caso, en rectangulares."
 }
+
 function PasarACoordenadasPolares { #PENDIENTE DE REVISION
 x=$1 #la x a la que hacerle el modulo
 y=$2 #la y a la que hacerle el modulo
@@ -53,6 +54,7 @@ y=$2 #la y a la que hacerle el modulo
 r=$(echo "scale=2; sqrt(($x^2)+($y^2))" | bc -l)
 fi=$(echo "scale=2; arctan($y/$x)" | bc -l)
 return 0
+}
 
 # es_numero valor
 # Comprueba si "valor" es un número decimal válido
@@ -73,12 +75,11 @@ function es_numero {
     return 1
 }
 
-PasarACoordenadasPolares{
-}
-
 function PasarACoordenadasRectangulares {
+
 }
 function SumaRectangulares {
+    
 }
 function SumaPolares {
 }
