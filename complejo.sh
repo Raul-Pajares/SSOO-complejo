@@ -217,8 +217,54 @@ function RestaPolares {
 function MultiplicaRectangulares {
 }
 function MultiplicaPolares {
+        if [ $# -ne 4 ]; then
+    echo "Error, la funcion necesita 4 parmetros." 
+    exit 1 #o return 1, ya vere si hay que cambiarlo
+    fi
+
+    local modulo1=$1
+    local angulo1=$2
+    local modulo2=$3
+    local angulo2=$4
+
+    r=$(echo "scale=2; $modulo1 * $modulo2" | bc -l)
+    ang=$(echo "scale=2; $angulo1 + $angulo2" | bc -l)
+
 }
 function DivideRectangulares {
+    if [ $# -ne 4 ]; then
+    echo "Error, la funcion necesita 4 parmetros." 
+    exit 1 #o return 1, ya vere si hay que cambiarlo
+    fi
+
+    if [ $3 -eq 0 ] && [ $4 -eq 0 ]; then
+    echo "Error, no es posible realizar la división." 
+    exit 1 #o return 1, ya vere si hay que cambiarlo
+    fi
+
+    local x1=$1
+    local y1=$2
+    local x2=$3
+    local y2=$4
+
+    local modulo1
+    local angulo1
+    local modulo2
+    local angulo2
+
+    rectangulares_a_polares $x1 $y1 #paso a polares la primera
+    modulo1=$r
+    angulo1=$ang
+
+    rectangulares_a_polares $x2 $y2 #paso a polares la segunda
+    modulo2=$r
+    angulo2=$ang
+
+    r=$(echo "scale=2; $modulo1 / $modulo2" | bc -l)
+    ang=$(echo "scale=2; $angulo1 - $angulo2" | bc -l)
+
+    polares_a_rectangulares $r $ang
+
 }
 function DividePolares {
 }
