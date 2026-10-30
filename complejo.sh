@@ -2,6 +2,10 @@
 function error{
     echo "$NOMBRE: error: $*" >&2 #Se redirige al canal de errores
 }
+function uso {
+    echo "Uso:"
+
+}
 PasarACoordenadasPolares{
 }
 PasarACoordenadasRectangulares{
@@ -22,7 +26,6 @@ DivideRectangulares{
 }
 DividePolares{
 }
-AydaComando{
-}
+
 exit 0
 
