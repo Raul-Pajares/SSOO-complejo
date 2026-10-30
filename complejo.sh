@@ -1,4 +1,7 @@
 #!/bin/bash
+function error{
+    echo "$NOMBRE: error: $*" >&2 #Se redirige al canal de errores
+}
 PasarACoordenadasPolares{
 }
 PasarACoordenadasRectangulares{
@@ -22,3 +25,4 @@ DividePolares{
 AydaComando{
 }
 exit 0
+
