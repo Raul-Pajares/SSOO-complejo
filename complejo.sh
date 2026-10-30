@@ -7,7 +7,7 @@ function error {
 function uso {
     echo "Uso:"
     echo "  $NOMBRE [-grad|-rad] OPCION operandos..."
-    echo "  $NOMBRE [-grad|-rad] \"(a+bi)op(c+di)\""
+    echo "  $NOMBRE [-grad|-rad] \"(a+bi)op(c+di)\"" 
     echo "  $NOMBRE [-grad|-rad] -f fichero"
     echo "  $NOMBRE -h"
     echo
@@ -46,6 +46,7 @@ function uso {
     echo "  Con dos operandos polares el resultado sale en polares; en cualquier"
     echo "  otro caso, en rectangulares."
 }
+
 function PasarACoordenadasPolares { #PENDIENTE DE REVISION
 x=$1 #la x a la que hacerle el modulo
 y=$2 #la y a la que hacerle el modulo
@@ -73,10 +74,13 @@ function es_numero {
     return 1
 }
 
-PasarACoordenadasPolares{
-}
 
-function PasarACoordenadasRectangulares {
+function PasarACoordenadasRectangulares { #FALTA POR HACER
+    m=$1 #el modulo 
+    a=$2 #el argumento
+    x=$(echo "scale=2; $m * c($a)" | bc -l)
+    y=$(echo "scale=2; $m * s($a)" | bc -l)
+    return 0
 }
 function SumaRectangulares {
 }
