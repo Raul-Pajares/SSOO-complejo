@@ -602,5 +602,13 @@ function EjecutaOpcion {
 #   Lee el fichero línea a línea y llama a procesa_linea con cada una.
 #   Devuelve 0 si todas fueron bien y 1 si alguna dio error.
 
-exit 0;
+
+# ===== PROGRAMA PRINCIPAL =====
+case $1 in
+    -grad) ANGULO=grados;   shift ;;
+    -rad)  ANGULO=radianes; shift ;;
+esac
+
+EjecutaOpcion "$@"
+exit $?
 
