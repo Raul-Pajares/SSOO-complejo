@@ -582,7 +582,7 @@ function EjecutaOpcion {
 
 
 # recorta "texto"
-#   Deja en RECORTADO   el texto sin espacios al principio ni al final.
+#   Deja en RECORTADO el texto sin espacios al principio ni al final.
 function Recorta {
     local cadena="$1"
     local longitud=${#cadena}
@@ -599,7 +599,7 @@ function Recorta {
 
     longitud=${#cadena} #guardar la longitud
 
-    while [ mayor "$longitud" 0 ] && [ "${cadena:$((longitud - 1)):1}" = " " ]; do #ver si la longitud es mayor que 0 junto a que el ultimo espacio sea un 0
+    while  mayor "$longitud" 0 && [ "${cadena:$((longitud - 1)):1}" = " " ]; do #ver si la longitud es mayor que 0 junto a que el ultimo espacio sea un 0
         longitud=$((longitud - 1))
         cadena="${cadena:0:$longitud}" #le quitamos el ultimo espacio
     done
@@ -616,7 +616,7 @@ function parse_operando {
     local texto cuerpo inicial num resto
 
     Recorta "$1"
-    local texto="$Recortado"
+    texto="$Recortado"
 
     case $texto in
         *[ij])                                   # ACABA EN i O j: RECTANGULAR
@@ -642,7 +642,7 @@ function parse_operando {
             ;;
         *" "*)                                   # TIENE UN ESPACIO: POLAR "mod arg"
             P_A=${texto%% *} #se guarda mod
-            Recorta "${texto#* }" #puede haber espacios por lo que se recorta el restoº
+            Recorta "${texto#* }" #puede haber espacios por lo que se recorta el resto
             P_B=$Recortado
             P_T=p
             ;;
@@ -661,7 +661,7 @@ function parse_operando {
     es_numero "$P_B"
     if [ $? -ne 0 ]; then
         error "operando no válido: '$original'"
-        return 2
+        return 1
     fi
  
     P_A=${P_A#+}                                 # bc no entiende un + delante
