@@ -94,12 +94,13 @@ function mayor {
 }
 
 function rectangulares_a_polares { #PENDIENTE DE REVISION
+
 ##BORRAR
-x=$1 #la x a la que hacerle el modulo
-y=$2 #la y a la que hacerle el modulo
-(scale=2) #he ajustado la precision a 2 decimales(eso se le envia al bc)
-r=$(echo "scale=2; sqrt(($x^2)+($y^2))" | bc -l)
-ang=$(echo "scale=2; arctan($y/$x)" | bc -l)
+#x=$1 #la x a la que hacerle el modulo
+#y=$2 #la y a la que hacerle el modulo
+#(scale=2) #he ajustado la precision a 2 decimales(eso se le envia al bc)
+#r=$(echo "scale=2; sqrt(($x^2)+($y^2))" | bc -l)
+#ang=$(echo "scale=2; arctan($y/$x)" | bc -l)
 ##BORRAR
 
 #HECHO CON calc
@@ -134,12 +135,11 @@ r=$(calc "sqrt(($1^2)+($2^2))")
 
 function polares_a_rectangulares { ##FALTA POR ACTUALIZAR
     ##BORRAR
-    m=$1 #el modulo 
-    a=$2 #el argumento (en grados)
+    #m=$1 #el modulo 
+    #a=$2 #el argumento (en grados)
     #se pasa el argumento y se pasa a radianes con 4*a(1)=pi y se calcula el coseno
-    x=$(echo "scale=20; $m * c($a * 4 * a(1)/180)" | bc -l) #se pasa el argumento y se pasa a radianes con 4*a(1)=pi y se calcula el coseno
-    y=$(echo "scale=20; $m * s($a * 4 * a(1)/180)" | bc -l)
-    
+    #x=$(echo "scale=20; $m * c($a * 4 * a(1)/180)" | bc -l) #se pasa el argumento y se pasa a radianes con 4*a(1)=pi y se calcula el coseno
+    #y=$(echo "scale=20; $m * s($a * 4 * a(1)/180)" | bc -l)
     ##BORRAR
 
     #HECHO CON calc
@@ -149,72 +149,83 @@ function polares_a_rectangulares { ##FALTA POR ACTUALIZAR
 }
 
 function SumaRectangulares {
-    if [ $# -ne 4 ]; then
-    echo "Error, la funcion necesita 4 parmetros." 
-    exit 1 #o return 1, ya vere si hay que cambiarlo
+    if [ $# != 4 ]; then
+        error "SumaRectangulares necesita 4 parámetros." 
+        return 1 
     fi
+    
     local x1=$1
     local y1=$2
     local x2=$3
     local y2=$4
 
-    #Calculo de coordenadas parte real#
-    x=$(echo "scale=2; $x1 + $x2" | bc -l)
-    #Calculo de coordenadas parte imaginaria#
-    y=$(echo "scale=2; $y1 + $y2" | bc -l)
+    #Calculo de coordenadas parte real
+    x=$(calc "($x1) + ($x2)") 
+    #Calculo de coordenadas parte imaginaria
+    y=$(calc "($y1) + ($y2)")
     
     return 0
 }
 
 function SumaPolares {
+    if [ $# != 4 ]; then
+        error "SumaPolares necesita 4 parámetros." 
+        return 1 
+    fi
+
     polares_a_rectangulares $1 $2
     local x1=$x
     local y1=$y
     
     polares_a_rectangulares $3 $4
-
     local x2=$x
     local y2=$y
 
     SumaRectangulares $x1 $y1 $x2 $y2
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
 
     rectangulares_a_polares $x $y
-
     return 0
 }
 
 function RestaRectangulares {
-    if [ $# -ne 4 ]; then
-    echo "Error, la funcion necesita 4 parmetros." 
-    exit 1 #o return 1, ya vere si hay que cambiarlo
+    if [ $# != 4 ]; then
+        error "RestaRectangulares necesita 4 parámetros." 
+        return 1 
     fi
+
     local x1=$1
     local y1=$2
     local x2=$3
     local y2=$4
 
     #Calculo de coordenadas parte real#
-    x=$(echo "scale=2; $x1 - $x2" | bc -l)
+    x=$(calc "($x1) - ($x2)")
     #Calculo de coordenadas parte imaginaria#
-    y=$(echo "scale=2; $y1 - $y2" | bc -l)
-    
+    y=$(calc "($y1) - ($y2)")
     return 0
 }
 
 function RestaPolares {
+    if [ $# != 4 ]; then
+        error "RestaPolares necesita 4 parámetros." 
+        return 1 
+    fi
     polares_a_rectangulares $1 $2
     local x1=$x
     local y1=$y
     
     polares_a_rectangulares $3 $4
-
     local x2=$x
     local y2=$y
 
     RestaRectangulares $x1 $y1 $x2 $y2
-
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
     rectangulares_a_polares $x $y
-
     return 0
 }
 
@@ -235,9 +246,9 @@ function MultiplicaRectangulares {
     return 0
 }
 function MultiplicaPolares {
-        if [ $# -ne 4 ]; then
-    echo "Error, la funcion necesita 4 parmetros." 
-    exit 1 #o return 1, ya vere si hay que cambiarlo
+    if [ $# -ne 4 ]; then
+        error "MultiplicaPolares necesita 4 parámetros."
+        return 1
     fi
 
     local modulo1=$1
@@ -245,20 +256,17 @@ function MultiplicaPolares {
     local modulo2=$3
     local angulo2=$4
 
-    r=$(echo "scale=2; $modulo1 * $modulo2" | bc -l)
-    ang=$(echo "scale=2; $angulo1 + $angulo2" | bc -l)
+    r=$(echo "scale=20; $modulo1 * $modulo2" | bc -l)
+    ang=$(echo "scale=20; $angulo1 + $angulo2" | bc -l)
+    return 0
 
 }
 function DivideRectangulares {
     if [ $# -ne 4 ]; then
-    echo "Error, la funcion necesita 4 parmetros." 
-    exit 1 #o return 1, ya vere si hay que cambiarlo
+        error "DivideRectangulares necesita 4 parmetros." 
+        return 1
     fi
 
-    if [ $3 -eq 0 ] && [ $4 -eq 0 ]; then
-    echo "Error, no es posible realizar la división." 
-    exit 1 #o return 1, ya vere si hay que cambiarlo
-    fi
 
     rectangulares_a_polares $1 $2 #paso a polares la primera
     local modulo1=$r
@@ -269,6 +277,9 @@ function DivideRectangulares {
     local angulo2=$ang
 
     DividePolares $modulo1 $angulo1 $modulo2 $angulo2
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
 
     polares_a_rectangulares $r $ang
 
@@ -276,8 +287,13 @@ function DivideRectangulares {
 
 }
 function DividePolares {
+    if [ $# -ne 4 ]; then
+        error "DividePolares necesita 4 parámetros."
+        return 1
+    fi
+
     if es_cero "$3"; then
-        error "división por cero"
+        error "No se puede dividir entre cero"
         return 1
     fi
 
@@ -298,33 +314,25 @@ function texto_rectangulares {
     esac
 }
 
-# Escribe el número complejo x+iy como "a+bi" o "a-bi".
+# Escribe el número complejo mod arg como "mod arg" (con espacio). SE PUEDE USAR CUALQUIERA DE LAS 2
 function TextoPolares {
-    #guardado en variables locales, aunque no se por que hay que guardarlos
     local TP_M=$1 #modulo
-    local TP_A=$2 #argumento
-    local es_mayor
-    if test $ANGULO = "grados"; then #esta en radianes, pero como el flag es 0 lo quiero en grados 
+    local TP_A=$2 #argumento (ya viene en la unidad actual: grados o radianes)
+    local TP_VUELTA #una vuelta completa
 
-        TP_A=$(echo "scale=20; $TP_A*180/(4*a(1))" | bc -l) #lo paso a grados
-        es_mayor=$(echo "$TP_A >= 360" | bc -l) #miro si da mas de una vuelta
-        if es_cero $es_mayor; then #si no da mas de una vuelta no hago nada
-        else
-        TP_A=$(echo "scale=2; $TP_A - 360" | bc -l) #si da mas de una vuelta le resto lo que le sobra
-        fi
-        echo "$TP_M $TP_A" #imprimo las dos partes
+    if test "$ANGULO" = grados; then
+        TP_VUELTA=360
+    else
+        TP_VUELTA=$(echo "scale=20; 2 * (4*a(1))" | bc -l)
+    fi
 
-    else #como el flag es 1 lo quiero en radianes
-        es_mayor=$(echo "$TP_A >= (2*$pi)" | bc -l) #miro si da mas de una vuelta
-        if es_cero $es_mayor; then #si no da mas de una vuelta no hago nada
-        else
-        TP_A=$(echo "scale=2; $TP_A - (2*$pi)" | bc -l) # si da mas de una vuelta le resto lo que le sobra
-    fi
-    echo "$TP_M $TP_A" #imprimo las dos partes
-    fi
-    
+    #mientras el angulo de una vuelta o mas, le quito una vuelta
+    while test "$(echo "$TP_A >= $TP_VUELTA" | bc -l)" = 1; do
+        TP_A=$(calc "$TP_A - $TP_VUELTA")
+    done
+
+    echo "$(fmt "$TP_M") $(fmt "$TP_A")" #imprimo las dos partes redondeadas
 }
-##HECHO POR RAÚL
 
 # Escribe el número complejo x+iy como "a+bi" o "a-bi".
 
@@ -347,10 +355,10 @@ function normaliza {
     local NZ_V=$(calc "2 * $NZ_M")                 # una vuelta completa
 
     while mayor "$NZ_A" "$NZ_M"; do                # mientras ang > media vuelta
-        NZ_A=$(calc "($NZ_A) - ($NZ_V)")           #   le quito una vuelta
+        NZ_A=$(calc "$NZ_A - $NZ_V")           #   le quito una vuelta
     done
     until mayor "$NZ_A" "-$NZ_M"; do               # hasta que ang > -media vuelta
-        NZ_A=$(calc "($NZ_A) + ($NZ_V)")           #   le añado una vuelta
+        NZ_A=$(calc "$NZ_A + $NZ_V")           #   le añado una vuelta
     done
 
     ANG=$NZ_A
@@ -362,39 +370,43 @@ function normaliza {
 # es_cero valor
 #   Devuelve 0 (éxito) si el valor es exactamente 0, aunque se escriba 0.0 o -0.
 function es_cero {
-    test "$(echo "($1) == 0" | bc -l)" = 1
+    test "$(echo "$1 == 0" | bc -l)" = 1
 }
 
-
+#BORRAR
 # fmt valor
 #   Redondea "valor" a DECIMALES decimales y lo escribe. Evita el "-0.0000".
-function Valor {
+#function fmt {
 
-    redondeado=$(echo "scale=2; ($1+0.005)/1" | bc -l) #en un principio con el +0,005 bastaria para un redondeo a las 
+#    redondeado=$(echo "scale=2; ($1+0.005)/1" | bc -l) #en un principio con el +0,005 bastaria para un redondeo a las 
     #centenas, pero el scale solo se activa al hacer una cuenta con bc y no me cortaria donde quiero,
     #asi que lo he dividido entre 1
-    if [ $redondeado = -0.00 ]; then
-    redondeado=0.00 #ahi si me ha salido el problema ese del cero negativo lo cambio por el positivo y tirando
-    fi
+#    if [ $redondeado = -0.00 ]; then
+#    redondeado=0.00 #ahi si me ha salido el problema ese del cero negativo lo cambio por el positivo y tirando
+#    fi
+#}
+#BORRAR
+
+function fmt {
+    case $(printf "%.${DECIMALES}f" "$1") in
+        -0.0000) echo 0.0000 ;;
+        *)       printf "%.${DECIMALES}f\n" "$1" ;;
+    esac
 }
 
 # comprueba_numeros n1 n2 ...
 #   Comprueba que todos los argumentos son números válidos (con es_numero).
 #   Devuelve 0 si lo son y 1 si alguno no lo es, avisando con error.
-    function CompruebaNumeros {
-        local contador=1
-        while [ $# != 0 ]; do #mientras el total de parametros(que ira quitando uno por el shift al final de cada iteracion) no sea 0 seguimos verificando
-            if ! es_numero $1; then #si tu haces un if 1 se ejecuta siempre, asi que aqui como es_numero da un 0, si lo cambio a lo contrario ejecuta el if
-                echo "El $contador argumento introducido no es un numero"
-                return 1
-            fi
-            shift 1 #el shift quita uno a los argumentos totales y $1 pasa a ser el siguiente($2)
-            contador=$(($contador+1)) #aqui yo use $($contador+1) pero notebook me ha dicho que el doble parentesis en operaciones aritmeticas es necesario
-        done
-
-        return 0
-
-    }
+function CompruebaNumeros {
+    while [ $# != 0 ]; do #mientras el total de parametros(que ira quitando uno por el shift al final de cada iteracion) no sea 0 seguimos verificando
+        if ! es_numero "$1"; then #si tu haces un if 1 se ejecuta siempre, asi que aqui como es_numero da un 0, si lo cambio a lo contrario ejecuta el if
+            error "'$1' no es un número válido"
+            return 1
+        fi
+        shift 1 #el shift quita uno a los argumentos totales y $1 pasa a ser el siguiente($2)
+    done
+    return 0
+}
 
 
 # ejecuta_opcion opcion operandos...
