@@ -381,6 +381,21 @@ function Valor {
 # comprueba_numeros n1 n2 ...
 #   Comprueba que todos los argumentos son números válidos (con es_numero).
 #   Devuelve 0 si lo son y 1 si alguno no lo es, avisando con error.
+    function CompruebaNumeros {
+        local contador=1
+        while [ $# != 0 ]; do
+            if ! es_numero $1; then #si tu haces un if 1 se ejecuta siempre, asi que aqui como es_numero da un 0, si lo cambio a lo contrario ejecuta el if
+                echo "El $contador argumento introducido no es un numero"
+                return 1
+            fi
+            shift 1 #el shift quita uno a los argumentos totales y $1 pasa a ser el siguiente($2)
+            contador=$(($contador+1)) #aqui yo use $($contador+1) pero notebook me ha dicho que el doble parentesis en operaciones aritmeticas es necesario
+        done
+
+        return 0
+
+    }
+
 
 # ejecuta_opcion opcion operandos...
 #   Gestiona las opciones -p, -r, -sr, -sp, -rr, -rp, -mr, -mp, -dr y -dp.
