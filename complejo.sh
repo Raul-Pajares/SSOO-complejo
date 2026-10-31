@@ -368,6 +368,15 @@ function es_cero {
 
 # fmt valor
 #   Redondea "valor" a DECIMALES decimales y lo escribe. Evita el "-0.0000".
+function Valor {
+
+    redondeado=$(echo "scale=2; ($1+0.005)/1" | bc -l) #en un principio con el +0,005 bastaria para un redondeo a las 
+    #centenas, pero el scale solo se activa al hacer una cuenta con bc y no me cortaria donde quiero,
+    #asi que lo he dividido entre 1
+    if [ $redondeado = -0.00 ]; then
+    redondeado=0.00 #ahi si me ha salido el problema ese del cero negativo lo cambio por el positivo y tirando
+    fi
+}
 
 # comprueba_numeros n1 n2 ...
 #   Comprueba que todos los argumentos son números válidos (con es_numero).
