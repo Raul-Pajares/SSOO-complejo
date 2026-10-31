@@ -2,7 +2,8 @@
 
 ANGULO=grados
 NOMBRE=${0##*/} #deja solo el fichero, $0 es el path completo del script, ##/ quita todo hasta la última barra, dejando solo el nombre del script
-
+DECIMALES=4 #numero de decimales a los que redondear el resultado
+    
 function error {
     echo "$NOMBRE: error: $*" >&2 #Se redirige al canal de errores
 }
@@ -263,7 +264,7 @@ function MultiplicaPolares {
 }
 function DivideRectangulares {
     if [ $# -ne 4 ]; then
-        error "DivideRectangulares necesita 4 parmetros." 
+        error "DivideRectangulares necesita 4 parámetros." 
         return 1
     fi
 
@@ -306,8 +307,8 @@ function DividePolares {
 # Escribe el número complejo x+iy como "a+bi" o "a-bi".
 function texto_rectangulares {
     #Cogemos los valores de los parámetros y los guardamos en variables locales
-    local TR_X=$1
-    local TR_Y=$2
+    local TR_X=$(fmt "$1")
+    local TR_Y=$(fmt "$2")
     case $TR_Y in
         -*) echo "$TR_X$TR_Y"i ;;     # la imaginaria ya trae el "-"
         *)  echo "$TR_X+$TR_Y"i ;;    # hay que poner el "+"
@@ -334,7 +335,6 @@ function TextoPolares {
     echo "$(fmt "$TP_M") $(fmt "$TP_A")" #imprimo las dos partes redondeadas
 }
 
-# Escribe el número complejo x+iy como "a+bi" o "a-bi".
 
 #Se va a utilizar la convención del angulo que se representa desde -mediavuelta, mediavuelta
 function texto_polares {
@@ -388,9 +388,10 @@ function es_cero {
 #BORRAR
 
 function fmt {
+    local F_CERO=$(printf "%.${DECIMALES}f" 0)     #el cero con DECIMALES decimales (0.0000, 0.00...)
     case $(printf "%.${DECIMALES}f" "$1") in
-        -0.0000) echo 0.0000 ;;
-        *)       printf "%.${DECIMALES}f\n" "$1" ;;
+        "-$F_CERO") echo "$F_CERO" ;;               #si sale -0.0000 lo cambio por 0.0000
+        *)          printf "%.${DECIMALES}f\n" "$1" ;;
     esac
 }
 
@@ -419,130 +420,166 @@ function EjecutaOpcion {
     seleccion=$1
     shift 1 # aqui como esta guardado le voy a quitar lo primero para que me de menos primeros
     case $seleccion in
-    "-p") #llamar a rectangulares_a_polares, 2 argumentos
-        if [ $# != 2 ]; then
-            echo "Necesitas 2 parametros"
-            return 2
-        fi
-        if ! CompruebaNumeros "$@" ; then
-            return 2
-        fi
-        rectangulares_a_polares $1 $2
-    ;;
+        "-p") #llamar a rectangulares_a_polares, 2 argumentos
+            if [ $# != 2 ]; then
+                echo "Necesitas 2 parametros"
+                return 2
+            fi
+            if ! CompruebaNumeros "$@" ; then
+                return 2
+            fi
+            
+            rectangulares_a_polares "$1" "$2"
+            texto_polares "$r" "$ang"
+        ;;
 
-    "-r") #llamar a polares_a_rectangulares, 2 argumentos
-        if [ $# != 2 ]; then
-            echo "Necesitas 2 parametros"
-            return 2
-        fi
-        if ! CompruebaNumeros "$@" ; then
-            return 2
-        fi
-        polares_a_rectangulares $1 $2
-    ;;
+        "-r") #llamar a polares_a_rectangulares, 2 argumentos
+            if [ $# != 2 ]; then
+                echo "Necesitas 2 parametros"
+                return 2
+            fi
+            if ! CompruebaNumeros "$@" ; then
+                return 2
+            fi
+            polares_a_rectangulares "$1" "$2"
+            texto_rectangulares "$x" "$y"
+        ;;
 
-    "-sr") #llamar a SumaRectangulares, 4 argumentos
-        if [ $# != 4 ]; then
-            echo "Necesitas 4 parametros"
-            return 2
-        fi
-        if ! CompruebaNumeros "$@" ; then
-            return 2
-        fi
-        SumaRectangulares $1 $2 $3 $4
-    ;;
-
-    "-sp") #llamar a SumaPolares, 4 argumentos
-        if [ $# != 4 ]; then
-            echo "Necesitas 4 parametros"
-            return 2
-        fi
-        if ! CompruebaNumeros "$@" ; then
-            return 2
-        fi
-        SumaPolares $1 $2 $3 $4
-    ;;
-
-    "-rr") #llamar a RestaRectangulares, 4 argumentos
-        if [ $# != 4 ]; then
+        "-sr") #llamar a SumaRectangulares, 4 argumentos
+            if [ $# != 4 ]; then
                 echo "Necesitas 4 parametros"
                 return 2
-        fi
-        if ! CompruebaNumeros "$@" ; then
+            fi
+            if ! CompruebaNumeros "$@" ; then
                 return 2
-        fi
-        RestaRectangulares $1 $2 $3 $4
-    ;;
+            fi
+            SumaRectangulares $1 $2 $3 $4
+            if [ $? -ne 0 ]; then
+                return 1
+            fi
+            texto_rectangulares "$x" "$y"
+        ;;
 
-    "-rp") #llamar a RestaPolares, 4 argumentos
-        if [ $# != 4 ]; then
+        "-sp") #llamar a SumaPolares, 4 argumentos
+            if [ $# != 4 ]; then
                 echo "Necesitas 4 parametros"
                 return 2
-        fi
-        if ! CompruebaNumeros "$@" ; then
+            fi
+            if ! CompruebaNumeros "$@" ; then
                 return 2
-        fi
-        RestaPolares $1 $2 $3 $4
-    ;;
+            fi
+            SumaPolares $1 $2 $3 $4
+            if [ $? -ne 0 ]; then
+                return 1
+            fi
+            texto_polares "$r" "$ang"
+        ;;
 
-    "-mr") #llamar a MultiplicaRectangulares, 4 argumentos
-        if [ $# != 4 ]; then
-                echo "Necesitas 4 parametros"
-                return 2
-        fi
-        if ! CompruebaNumeros "$@" ; then
-                return 2
-        fi
-        MultiplicaRectangulares $1 $2 $3 $4
-    ;;
+        "-rr") #llamar a RestaRectangulares, 4 argumentos
+            if [ $# != 4 ]; then
+                    echo "Necesitas 4 parametros"
+                    return 2
+            fi
+            if ! CompruebaNumeros "$@" ; then
+                    return 2
+            fi
+            RestaRectangulares $1 $2 $3 $4
+            if [ $? -ne 0 ]; then
+                return 1
+            fi
+            texto_rectangulares "$x" "$y"
+        ;;
 
-    "-mp") #llamar a MultiplicaPolares, 4 parametros
-        if  [ $# != 4 ]; then
-                echo "Necesitas 4 parametros"
-                return 2
-        fi
-        if ! CompruebaNumeros "$@" ; then
-                return 2
-        fi
-        MultiplicaPolares $1 $2 $3 $4
-    ;;
+        "-rp") #llamar a RestaPolares, 4 argumentos
+            if [ $# != 4 ]; then
+                    echo "Necesitas 4 parametros"
+                    return 2
+            fi
+            if ! CompruebaNumeros "$@" ; then
+                    return 2
+            fi
+            RestaPolares $1 $2 $3 $4
+            if [ $? -ne 0 ]; then
+                return 1
+            fi
+            texto_polares "$r" "$ang"
+        ;;
 
-    "-dr") #llamar a DivideRectangulares, 4 parametros
-        if  [ $# != 4 ]; then
-                echo "Necesitas 4 parametros"
-                return 2
-        fi
-        if ! CompruebaNumeros "$@" ; then
-                return 2
-        fi
-        DivideRectangulares $1 $2 $3 $4
-    ;;
+        "-mr") #llamar a MultiplicaRectangulares, 4 argumentos
+            if [ $# != 4 ]; then
+                    echo "Necesitas 4 parametros"
+                    return 2
+            fi
+            if ! CompruebaNumeros "$@" ; then
+                    return 2
+            fi
+            MultiplicaRectangulares $1 $2 $3 $4
+            if [ $? -ne 0 ]; then
+                return 1
+            fi
+            texto_rectangulares "$x" "$y"
+        ;;
 
-    "-dp") #llamar a DividePolares, 4 parametros
-        if  [ $# != 4 ]; then
-                echo "Necesitas 4 parametros"
-                return 2
-        fi
-        if ! CompruebaNumeros "$@" ; then
-                return 2
-        fi
-        DividePolares $1 $2 $3 $4
-    ;;
+        "-mp") #llamar a MultiplicaPolares, 4 parametros
+            if  [ $# != 4 ]; then
+                    echo "Necesitas 4 parametros"
+                    return 2
+            fi
+            if ! CompruebaNumeros "$@" ; then
+                    return 2
+            fi
+            MultiplicaPolares $1 $2 $3 $4
+            if [ $? -ne 0 ]; then
+                return 1
+            fi
+            texto_polares "$r" "$ang"
+        ;;
 
-    "-h") #abrir Ayuda, 0 parametros
-        if [ $# != 0 ]; then
-            echo "No se le pueden pasar parámetros a -h"
+        "-dr") #llamar a DivideRectangulares, 4 parametros
+            if  [ $# != 4 ]; then
+                    echo "Necesitas 4 parametros"
+                    return 2
+            fi
+            if ! CompruebaNumeros "$@" ; then
+                    return 2
+            fi
+            DivideRectangulares $1 $2 $3 $4
+            if [ $? -ne 0 ]; then
+                return 1
+            fi
+            texto_rectangulares "$x" "$y"
+        ;;
+
+        "-dp") #llamar a DividePolares, 4 parametros
+            if  [ $# != 4 ]; then
+                    echo "Necesitas 4 parametros"
+                    return 2
+            fi
+            if ! CompruebaNumeros "$@" ; then
+                    return 2
+            fi
+            DividePolares $1 $2 $3 $4
+            if [ $? -ne 0 ]; then
+                return 1
+            fi
+            texto_polares "$r" "$ang"
+        ;;
+
+        "-h") #abrir Ayuda, 0 parametros
+            if [ $# != 0 ]; then
+                echo "No se le pueden pasar parámetros a -h"
+                return 2
+            fi
+            uso
+        ;;
+
+        *)
+            echo "Opción no valida"
             return 2
-        fi
-        uso
-    ;;
-
-    *)
-        echo "Opción no valida"
-        return 2
-    ;;
-    esac
+        ;;
+        esac
 }
+
 
 # recorta "texto"
 #   Deja en RECORTADO el texto sin espacios al principio ni al final.
