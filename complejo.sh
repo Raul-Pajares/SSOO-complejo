@@ -582,7 +582,7 @@ function EjecutaOpcion {
 
 
 # recorta "texto"
-#   Deja en RECORTADO el texto sin espacios al principio ni al final.
+#   Deja en RECORTADO   el texto sin espacios al principio ni al final.
 function Recorta {
     local cadena="$1"
     local longitud=${#cadena}
@@ -599,7 +599,7 @@ function Recorta {
 
     longitud=${#cadena} #guardar la longitud
 
-    while ! $longitud mayor 0  && [ "${cadena:$((longitud - 1)):1}" = " " ]; do #ver si la longitud es mayor que 0 junto a que el ultimo espacio sea un 0
+    while [ mayor "$longitud" 0 ] && [ "${cadena:$((longitud - 1)):1}" = " " ]; do #ver si la longitud es mayor que 0 junto a que el ultimo espacio sea un 0
         longitud=$((longitud - 1))
         cadena="${cadena:0:$longitud}" #le quitamos el ultimo espacio
     done
@@ -611,6 +611,64 @@ function Recorta {
 #   Analiza un complejo escrito como "a+bi" (o con j), "bi", real puro o
 #   polar "mod arg". Deja el tipo en P_T (r o p) y los valores en P_A y P_B.
 #   Devuelve 1 si el texto no es un complejo válido.
+function parse_operando {
+    local original=$1
+    local texto cuerpo inicial num resto
+
+    Recorta "$1"
+    local texto="$Recortado"
+
+    case $texto in
+        *[ij])                                   # ACABA EN i O j: RECTANGULAR
+            cuerpo=${texto%?}                    # se quita la i o la j del final
+            case $cuerpo in                      # si empieza por signo, se aparta y se guarda en inicial
+                [+-]*) inicial=${cuerpo%"${cuerpo#?}"}; cuerpo=${cuerpo#?} ;;
+                *)     inicial= ;;
+            esac
+            
+            num=${cuerpo##*[+-]}                 # lo que hay detras del ultimo signo
+            if [ "$num" = "$cuerpo" ]; then      # no hay signo en medio: "3i"
+                P_A=0
+                P_B=$inicial$num
+            else                                 # hay signo en medio: "2+3i"
+                resto=${cuerpo%"$num"}           # "2+"
+                P_A=$inicial${resto%?}           # "2"
+                P_B=${resto#"${resto%?}"}$num    # "+3"
+            fi
+            case $P_B in                         # "i" equivale a "1i"
+                ""|"+"|"-") P_B=${P_B}1 ;;
+            esac
+            P_T=r
+            ;;
+        *" "*)                                   # TIENE UN ESPACIO: POLAR "mod arg"
+            P_A=${texto%% *} #se guarda mod
+            Recorta "${texto#* }" #puede haber espacios por lo que se recorta el restoº
+            P_B=$Recortado
+            P_T=p
+            ;;
+        *)                                       # NINGUNA DE LAS DOS: real puro RECTANGULAR
+            P_A=$texto
+            P_B=0
+            P_T=r
+            ;;
+    esac
+ 
+    es_numero "$P_A"
+    if [ $? -ne 0 ]; then
+        error "operando no válido: '$original'"
+        return 1
+    fi
+    es_numero "$P_B"
+    if [ $? -ne 0 ]; then
+        error "operando no válido: '$original'"
+        return 2
+    fi
+ 
+    P_A=${P_A#+}                                 # bc no entiende un + delante
+    P_B=${P_B#+}
+    return 0
+   
+}
 
 # evalua_expresion "(op1)operador(op2)"
 #   Separa los dos operandos y el operador, calcula y escribe

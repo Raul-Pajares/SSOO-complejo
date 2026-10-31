@@ -2,7 +2,7 @@
 # pruebas.sh - Batería de pruebas para complejo.sh
 # Uso (desde la carpeta donde está complejo.sh):   bash pruebas.sh
 # Cada prueba compara la salida y el código de salida con lo esperado.
-
+#usar sed -i 's/\r$//' complejo.sh pruebas.sh y luego file pruebas.sh y file complejo.sh y luego ejecutar bash
 SCRIPT=./complejo.sh
 OK=0
 MAL=0
