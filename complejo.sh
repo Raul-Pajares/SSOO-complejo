@@ -383,7 +383,7 @@ function Valor {
 #   Devuelve 0 si lo son y 1 si alguno no lo es, avisando con error.
     function CompruebaNumeros {
         local contador=1
-        while [ $# != 0 ]; do
+        while [ $# != 0 ]; do #mientras el total de parametros(que ira quitando uno por el shift al final de cada iteracion) no sea 0 seguimos verificando
             if ! es_numero $1; then #si tu haces un if 1 se ejecuta siempre, asi que aqui como es_numero da un 0, si lo cambio a lo contrario ejecuta el if
                 echo "El $contador argumento introducido no es un numero"
                 return 1
@@ -402,6 +402,135 @@ function Valor {
 #   Comprueba el número de operandos y que sean números, llama a la operación
 #   y escribe el resultado. Devuelve 0 si va bien, 1 si falla la operación
 #   (por ejemplo, división por cero) y 2 si el uso es incorrecto.
+function EjecutaOpcion {
+    local seleccion
+    seleccion=$1
+    shift 1 # aqui como esta guardado le voy a quitar lo primero para que me de menos primeros
+    case $seleccion in
+    "-p") #llamar a rectangulares_a_polares, 2 argumentos
+        if [ $# != 2 ]; then
+            echo "Necesitas 2 parametros"
+            return 2
+        fi
+        if ! CompruebaNumeros "$@" ; then
+            return 2
+        fi
+        rectangulares_a_polares $1 $2
+    ;;
+
+    "-r") #llamar a polares_a_rectangulares, 2 argumentos
+        if [ $# != 2 ]; then
+            echo "Necesitas 2 parametros"
+            return 2
+        fi
+        if ! CompruebaNumeros "$@" ; then
+            return 2
+        fi
+        polares_a_rectangulares $1 $2
+    ;;
+
+    "-sr") #llamar a SumaRectangulares, 4 argumentos
+        if [ $# != 4 ]; then
+            echo "Necesitas 4 parametros"
+            return 2
+        fi
+        if ! CompruebaNumeros "$@" ; then
+            return 2
+        fi
+        SumaRectangulares $1 $2 $3 $4
+    ;;
+
+    "-sp") #llamar a SumaPolares, 4 argumentos
+        if [ $# != 4 ]; then
+            echo "Necesitas 4 parametros"
+            return 2
+        fi
+        if ! CompruebaNumeros "$@" ; then
+            return 2
+        fi
+        SumaPolares $1 $2 $3 $4
+    ;;
+
+    "-rr") #llamar a RestaRectangulares, 4 argumentos
+        if [ $# != 4 ]; then
+                echo "Necesitas 4 parametros"
+                return 2
+        fi
+        if ! CompruebaNumeros "$@" ; then
+                return 2
+        fi
+        RestaRectangulares $1 $2 $3 $4
+    ;;
+
+    "-rp") #llamar a RestaPolares, 4 argumentos
+        if [ $# != 4 ]; then
+                echo "Necesitas 4 parametros"
+                return 2
+        fi
+        if ! CompruebaNumeros "$@" ; then
+                return 2
+        fi
+        RestaPolares $1 $2 $3 $4
+    ;;
+
+    "-mr") #llamar a MultiplicaRectangulares, 4 argumentos
+        if [ $# != 4 ]; then
+                echo "Necesitas 4 parametros"
+                return 2
+        fi
+        if ! CompruebaNumeros "$@" ; then
+                return 2
+        fi
+        MultiplicaRectangulares $1 $2 $3 $4
+    ;;
+
+    "-mp") #llamar a MultiplicaPolares, 4 parametros
+        if  [ $# != 4 ]; then
+                echo "Necesitas 4 parametros"
+                return 2
+        fi
+        if ! CompruebaNumeros "$@" ; then
+                return 2
+        fi
+        MultiplicaPolares $1 $2 $3 $4
+    ;;
+
+    "-dr") #llamar a DivideRectangulares, 4 parametros
+        if  [ $# != 4 ]; then
+                echo "Necesitas 4 parametros"
+                return 2
+        fi
+        if ! CompruebaNumeros "$@" ; then
+                return 2
+        fi
+        DivideRectangulares $1 $2 $3 $4
+    ;;
+
+    "-dp") #llamar a DividePolares, 4 parametros
+        if  [ $# != 4 ]; then
+                echo "Necesitas 4 parametros"
+                return 2
+        fi
+        if ! CompruebaNumeros "$@" ; then
+                return 2
+        fi
+        DividePolares $1 $2 $3 $4
+    ;;
+
+    "-h") #abrir Ayuda, 0 parametros
+        if [ $# != 0 ]; then
+            echo "No se le pueden pasar parámetros a -h"
+            return 2
+        fi
+        uso
+    ;;
+
+    *)
+        echo "Opción no valida"
+        return 2
+    ;;
+    esac
+}
 
 # recorta "texto"
 #   Deja en RECORTADO el texto sin espacios al principio ni al final.
