@@ -583,6 +583,29 @@ function EjecutaOpcion {
 
 # recorta "texto"
 #   Deja en RECORTADO el texto sin espacios al principio ni al final.
+function Recorta {
+    local cadena="$1"
+    local longitud=${#cadena}
+
+    if [ -z "$cadena" ]; then #-z si la cadena esta vacia
+        Recortado=""
+        return 0
+    fi
+
+    while [ "${cadena:0:1}" = " " ]; do #ver si el primero es espacio y quitarlo
+        cadena="${cadena:1}"
+    done
+
+
+    longitud=${#cadena} #guardar la longitud
+
+    while ! $longitud mayor 0  && [ "${cadena:$((longitud - 1)):1}" = " " ]; do #ver si la longitud es mayor que 0 junto a que el ultimo espacio sea un 0
+        longitud=$((longitud - 1))
+        cadena="${cadena:0:$longitud}" #le quitamos el ultimo espacio
+    done
+
+    Recortado="$cadena" 
+}
 
 # parse_operando "texto"
 #   Analiza un complejo escrito como "a+bi" (o con j), "bi", real puro o
