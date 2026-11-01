@@ -674,6 +674,43 @@ function parse_operando {
 #   Separa los dos operandos y el operador, calcula y escribe
 #   "expresión = resultado". Si los dos operandos son polares el resultado
 #   sale en polares; en cualquier otro caso, en rectangulares.
+feat EvaluaExpresion {
+    expresion=$1
+    local temp="${expresion#*(}" #aislamos cortando todo antes del 1 parentesis (
+    local ope1="${temp%%)*}" #aislamos cortando todo despues del 1 parentesis ), o lo que es lo mismo, quitar todo despues del ultimo ) empezando por la izquierda
+
+    local resto="${expresion#*)}" #dejo solo el operador y el 2 operando
+    local operador="${resto:0:1}" #cojo el primer caracter del resto que es el operador
+
+    temp="${resto#*(}" #elimino todo antes del primer (
+    local ope2="${temp%)*}" #elimino todo despues del ultimo parentesis(el parentesis incluido)
+
+    local es_polar1=false
+    local es_polar2=false
+
+    case "$ope1" in #si tiene espacio es que es polar y activamos que el operando 1 lo es
+        *" "*) es_polar1=true ;;
+    esac
+
+    case "$ope2" in
+        *" "*) es_polar2=true ;; #lo mismo que el anterior
+    esac
+    #ahora me queda separar la cuenta de los operandos y si te meten letras quitarlas
+    #AQUI__________________________________________
+    #______________________________________________
+
+    #trabajo en proceso
+    #if es_polar1 == true && es_polar2 == true; then
+    #case "$operador" in
+    #    "+") EjecutaOpcion -sp 
+    #    "-") EjecutaOpcion -rp
+    #    "*") EjecutaOpcion -mp
+    #    "/") EjecutaOpcion  -dp
+    #esac
+    #else
+    #    if es_polar1=
+
+}
 
 # procesa_linea "línea"
 #   Trata una línea del fichero. Ignora las vacías y las que empiezan por #,
