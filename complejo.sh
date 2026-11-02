@@ -422,7 +422,7 @@ function EjecutaOpcion {
     case $seleccion in
         "-p") #llamar a rectangulares_a_polares, 2 argumentos
             if [ $# != 2 ]; then
-                echo "Necesitas 2 parametros"
+                error "Necesitas 2 parametros"
                 return 2
             fi
             if ! CompruebaNumeros "$@" ; then
@@ -435,7 +435,7 @@ function EjecutaOpcion {
 
         "-r") #llamar a polares_a_rectangulares, 2 argumentos
             if [ $# != 2 ]; then
-                echo "Necesitas 2 parametros"
+                error "Necesitas 2 parametros"
                 return 2
             fi
             if ! CompruebaNumeros "$@" ; then
@@ -447,7 +447,7 @@ function EjecutaOpcion {
 
         "-sr") #llamar a SumaRectangulares, 4 argumentos
             if [ $# != 4 ]; then
-                echo "Necesitas 4 parametros"
+                error "Necesitas 4 parametros"
                 return 2
             fi
             if ! CompruebaNumeros "$@" ; then
@@ -462,7 +462,7 @@ function EjecutaOpcion {
 
         "-sp") #llamar a SumaPolares, 4 argumentos
             if [ $# != 4 ]; then
-                echo "Necesitas 4 parametros"
+                error "Necesitas 4 parametros"
                 return 2
             fi
             if ! CompruebaNumeros "$@" ; then
@@ -477,7 +477,7 @@ function EjecutaOpcion {
 
         "-rr") #llamar a RestaRectangulares, 4 argumentos
             if [ $# != 4 ]; then
-                    echo "Necesitas 4 parametros"
+                    error "Necesitas 4 parametros"
                     return 2
             fi
             if ! CompruebaNumeros "$@" ; then
@@ -492,7 +492,7 @@ function EjecutaOpcion {
 
         "-rp") #llamar a RestaPolares, 4 argumentos
             if [ $# != 4 ]; then
-                    echo "Necesitas 4 parametros"
+                    error "Necesitas 4 parametros"
                     return 2
             fi
             if ! CompruebaNumeros "$@" ; then
@@ -507,7 +507,7 @@ function EjecutaOpcion {
 
         "-mr") #llamar a MultiplicaRectangulares, 4 argumentos
             if [ $# != 4 ]; then
-                    echo "Necesitas 4 parametros"
+                    error "Necesitas 4 parametros"
                     return 2
             fi
             if ! CompruebaNumeros "$@" ; then
@@ -522,7 +522,7 @@ function EjecutaOpcion {
 
         "-mp") #llamar a MultiplicaPolares, 4 parametros
             if  [ $# != 4 ]; then
-                    echo "Necesitas 4 parametros"
+                    error "Necesitas 4 parametros"
                     return 2
             fi
             if ! CompruebaNumeros "$@" ; then
@@ -537,7 +537,7 @@ function EjecutaOpcion {
 
         "-dr") #llamar a DivideRectangulares, 4 parametros
             if  [ $# != 4 ]; then
-                    echo "Necesitas 4 parametros"
+                    error "Necesitas 4 parametros"
                     return 2
             fi
             if ! CompruebaNumeros "$@" ; then
@@ -552,7 +552,7 @@ function EjecutaOpcion {
 
         "-dp") #llamar a DividePolares, 4 parametros
             if  [ $# != 4 ]; then
-                    echo "Necesitas 4 parametros"
+                    error "Necesitas 4 parametros"
                     return 2
             fi
             if ! CompruebaNumeros "$@" ; then
@@ -567,14 +567,14 @@ function EjecutaOpcion {
 
         "-h") #abrir Ayuda, 0 parametros
             if [ $# != 0 ]; then
-                echo "No se le pueden pasar parámetros a -h"
+                error "No se le pueden pasar parámetros a -h"
                 return 2
             fi
             uso
         ;;
 
         *)
-            echo "Opción no valida"
+            error "Opción no valida"
             return 2
         ;;
         esac
@@ -582,7 +582,7 @@ function EjecutaOpcion {
 
 
 # recorta "texto"
-#   Deja en RECORTADO el texto sin espacios al principio ni al final.
+#   Deja en Recortado el texto sin espacios al principio ni al final.
 function Recorta {
     local cadena="$1"
     local longitud=${#cadena}
@@ -674,7 +674,7 @@ function parse_operando {
 #   Separa los dos operandos y el operador, calcula y escribe
 #   "expresión = resultado". Si los dos operandos son polares el resultado
 #   sale en polares; en cualquier otro caso, en rectangulares.
-feat EvaluaExpresion {
+function evalua_expresion {
     expresion=$1
     local temp="${expresion#*(}" #aislamos cortando todo antes del 1 parentesis (
     local ope1="${temp%%)*}" #aislamos cortando todo despues del 1 parentesis ), o lo que es lo mismo, quitar todo despues del ultimo ) empezando por la izquierda
@@ -716,17 +716,112 @@ feat EvaluaExpresion {
 #   Trata una línea del fichero. Ignora las vacías y las que empiezan por #,
 #   cambia la unidad con "grados" o "radianes" y evalúa el resto.
 
+function procesa_linea {
+    Recorta "$1"
+    local linea="$Recortado"
+    
+    case "$linea" in
+        "") return 0 ;; # línea vacía
+        "#"*) return 0 ;; # comentario
+        "grados"|"Grados"|"GRADOS") ANGULO=grados; return 0 ;;
+        "radianes"|"Radianes"|"RADIANES") ANGULO=radianes; return 0 ;;
+        *) evalua_expresion "$linea" 
+            if [ $? -ne 0 ]; then
+                error "línea $2: no se pudo realizar la operación"
+                return 1
+            fi;;
+    esac
+    
+    return 0
+}
+
+
 # procesa_fichero fichero
 #   Lee el fichero línea a línea y llama a procesa_linea con cada una.
-#   Devuelve 0 si todas fueron bien y 1 si alguna dio error.
+#   Devuelve 0 si todas fueron bien, 1 si alguna línea dio error y
+#   2 si el fichero no existe o no se puede leer.
+
+function procesa_fichero {
+    local fichero="$1"
+
+    # 1. Validar que se ha pasado una ruta y que el fichero existe y es legible
+    if [ -z "$fichero" ] || [ ! -f "$fichero" ] || [ ! -r "$fichero" ]; then #1.falta el nombre del fichero, 2. no existe, 3. no se puede leer
+        error "El fichero '$fichero' no existe o no se puede leer."
+        return 2
+    fi
+
+    local LINEA
+    local n=0           # número de línea
+    local errores=0     # líneas que han fallado
+
+    while read -r LINEA; do    # lee una línea cada vuelta
+        n=$((n + 1))                       # sube el contador de línea
+        procesa_linea "$LINEA" "$n"
+        if [ $? -ne 0 ]; then
+            errores=$((errores + 1))           
+        fi
+    done < "$fichero" # lee el fichero línea a línea y lo manda al bucle
+
+    # Si la última línea no acaba en Enter, read la deja en LINEA pero el
+    # bucle termina sin procesarla: se trata aquí
+    if [ -n "$LINEA" ]; then #si la línea no está vacía, la procesa
+        n=$((n + 1))
+        procesa_linea "$LINEA" "$n"
+        if [ $? -ne 0 ]; then
+            errores=$((errores + 1))
+        fi
+    fi
+
+    # Si hay errores, devolvemos 1
+    if [ $errores -ne 0 ]; then
+        return 1
+    fi
+    return 0
+}
 
 
 # ===== PROGRAMA PRINCIPAL =====
+
+# 1. Unidad de los ángulos (opcional, siempre el primer argumento)
 case $1 in
     -grad) ANGULO=grados;   shift ;;
     -rad)  ANGULO=radianes; shift ;;
 esac
 
-EjecutaOpcion "$@"
-exit $?
+# 2. No se pueden poner -grad y -rad a la vez
+case $1 in
+    -grad|-rad)
+        error "no se pueden usar -grad y -rad a la vez"
+        exit 2
+        ;;
+esac
 
+# 3. Si no queda nada por hacer, se muestra la ayuda
+if [ $# -eq 0 ]; then
+    uso >&2
+    exit 2
+fi
+
+# 4. Se decide qué se pide: fichero, expresión matemática u opción
+case $1 in
+    -f)                                  # -f fichero
+        if [ $# -ne 2 ]; then
+            error "uso: $NOMBRE [-grad|-rad] -f fichero"
+            exit 2
+        fi
+        procesa_fichero "$2"
+        exit $?
+        ;;
+    "("*)                                # "(a+bi)op(c+di)"
+        if [ $# -ne 1 ]; then
+            error "la expresión debe ir entre comillas y sola"
+            exit 2
+        fi
+        evalua_expresion "$1"
+        exit $?
+        ;;
+    *)                                   # -p, -r, -sr, ..., -h
+        EjecutaOpcion "$@"
+        exit $?
+        ;;
+esac
