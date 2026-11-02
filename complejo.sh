@@ -685,30 +685,60 @@ function evalua_expresion {
     temp="${resto#*(}" #elimino todo antes del primer (
     local ope2="${temp%)*}" #elimino todo despues del ultimo parentesis(el parentesis incluido)
 
-    local es_polar1=false
-    local es_polar2=false
+    local esPolar1=false
+    local esPolar2=false
 
     case "$ope1" in #si tiene espacio es que es polar y activamos que el operando 1 lo es
-        *" "*) es_polar1=true ;;
+        *" "*) esPolar1=true ;;
     esac
 
     case "$ope2" in
-        *" "*) es_polar2=true ;; #lo mismo que el anterior
+        *" "*) esPolar2=true ;; #lo mismo que el anterior
     esac
-    #ahora me queda separar la cuenta de los operandos y si te meten letras quitarlas
-    #AQUI__________________________________________
-    #______________________________________________
+
+    parse_operando "$ope1"
+    x1="$P_A"
+    y1="$P_B"
+    parse_operando "$ope2"
+    x2="$P_A"
+    y2="$P_B"
 
     #trabajo en proceso
-    #if es_polar1 == true && es_polar2 == true; then
-    #case "$operador" in
-    #    "+") EjecutaOpcion -sp 
-    #    "-") EjecutaOpcion -rp
-    #    "*") EjecutaOpcion -mp
-    #    "/") EjecutaOpcion  -dp
-    #esac
-    #else
-    #    if es_polar1=
+    if [ "$esPolar1" = true ] && [ "$esPolar2" = true ]; then
+    case "$operador" in
+        "+") EjecutaOpcion -sp "$x1" "$y1" "$x2" "$y2"
+        ;;
+        "-") EjecutaOpcion -rp "$x1" "$y1" "$x2" "$y2"
+        ;;
+        "*") EjecutaOpcion -mp "$x1" "$y1" "$x2" "$y2"
+        ;;
+        "/") EjecutaOpcion  -dp "$x1" "$y1" "$x2" "$y2"
+        ;;
+    esac
+    else
+        if [ "$esPolar1" = true ]; then
+            polares_a_rectangulares "$x1" "$y1"
+            x1="$x"
+            y1="$y"
+        fi
+        
+        if [ "$esPolar2" = true ]; then 
+            polares_a_rectangulares "$x2" "$y2"
+            x2="$x"
+            y2="$y"
+        fi
+
+        case "$operador" in
+            "+") EjecutaOpcion -sr "$x1" "$y1" "$x2" "$y2"
+            ;;
+            "-") EjecutaOpcion -rr "$x1" "$y1" "$x2" "$y2"
+            ;;
+            "*") EjecutaOpcion -mr "$x1" "$y1" "$x2" "$y2"
+            ;;
+            "/") EjecutaOpcion  -dr "$x1" "$y1" "$x2" "$y2"
+            ;;
+        esac
+    fi
 
 }
 
