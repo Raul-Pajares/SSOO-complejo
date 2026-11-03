@@ -675,7 +675,10 @@ function parse_operando {
 #   "expresión = resultado". Si los dos operandos son polares el resultado
 #   sale en polares; en cualquier otro caso, en rectangulares.
 function evalua_expresion {
-    expresion=$1
+    local expresion
+    Recorta "$1"
+    expresion=$Recortado
+
     local temp="${expresion#*(}" #aislamos cortando todo antes del 1 parentesis (
     local ope1="${temp%%)*}" #aislamos cortando todo despues del 1 parentesis ), o lo que es lo mismo, quitar todo despues del ultimo ) empezando por la izquierda
 
@@ -697,9 +700,15 @@ function evalua_expresion {
     esac
 
     parse_operando "$ope1"
+    if [ $? != 0 ]; then
+     return 1
+    fi
     x1="$P_A"
     y1="$P_B"
     parse_operando "$ope2"
+    if [ $? != 0 ]; then
+        return 1
+     fi
     x2="$P_A"
     y2="$P_B"
 
@@ -739,7 +748,7 @@ function evalua_expresion {
             ;;
         esac
     fi
-
+    return 0
 }
 
 # procesa_linea "línea"
