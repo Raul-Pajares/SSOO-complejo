@@ -94,17 +94,7 @@ function mayor {
     test "$(echo "($1) > ($2)" | bc -l)" = 1
 }
 
-function rectangulares_a_polares { #PENDIENTE DE REVISION
-
-##BORRAR
-#x=$1 #la x a la que hacerle el modulo
-#y=$2 #la y a la que hacerle el modulo
-#(scale=2) #he ajustado la precision a 2 decimales(eso se le envia al bc)
-#r=$(echo "scale=2; sqrt(($x^2)+($y^2))" | bc -l)
-#ang=$(echo "scale=2; arctan($y/$x)" | bc -l)
-##BORRAR
-
-#HECHO CON calc
+function rectangulares_a_polares { 
 r=$(calc "sqrt(($1^2)+($2^2))")
 
     # El ángulo se calcula primero en radianes, según el cuadrante
@@ -134,16 +124,7 @@ r=$(calc "sqrt(($1^2)+($2^2))")
     return 0
 }
 
-function polares_a_rectangulares { ##FALTA POR ACTUALIZAR
-    ##BORRAR
-    #m=$1 #el modulo 
-    #a=$2 #el argumento (en grados)
-    #se pasa el argumento y se pasa a radianes con 4*a(1)=pi y se calcula el coseno
-    #x=$(echo "scale=20; $m * c($a * 4 * a(1)/180)" | bc -l) #se pasa el argumento y se pasa a radianes con 4*a(1)=pi y se calcula el coseno
-    #y=$(echo "scale=20; $m * s($a * 4 * a(1)/180)" | bc -l)
-    ##BORRAR
-
-    #HECHO CON calc
+function polares_a_rectangulares { 
     x=$(calc "$1 * c(($2) * k)")
     y=$(calc "$1 * s(($2) * k)")
     return 0
@@ -183,7 +164,7 @@ function SumaPolares {
     local y2=$y
 
     SumaRectangulares $x1 $y1 $x2 $y2
-    if [ $? -ne 0 ]; then
+    if [ $? != 0 ]; then
         return 1
     fi
 
@@ -223,14 +204,19 @@ function RestaPolares {
     local y2=$y
 
     RestaRectangulares $x1 $y1 $x2 $y2
-    if [ $? -ne 0 ]; then
+    if [ $? != 0 ]; then
         return 1
     fi
+
     rectangulares_a_polares $x $y
     return 0
 }
 
 function MultiplicaRectangulares {
+    if [ $# != 4 ]; then
+        error "MultiplicaRectangulares necesita 4 parámetros." 
+        return 1 
+    fi
 
     rectangulares_a_polares $1 $2
     local m1=$r
@@ -241,13 +227,18 @@ function MultiplicaRectangulares {
     local a2=$ang
 
     MultiplicaPolares $m1 $a1 $m2 $a2
+    if [ $# != 4 ]; then
+       error "MultiplicaRectangulares necesita 4 parámetros."
+       return 1
+    fi
 
     polares_a_rectangulares $r $ang
 
     return 0
 }
+
 function MultiplicaPolares {
-    if [ $# -ne 4 ]; then
+    if [ $# != 4 ]; then
         error "MultiplicaPolares necesita 4 parámetros."
         return 1
     fi
@@ -260,8 +251,8 @@ function MultiplicaPolares {
     r=$(echo "scale=20; $modulo1 * $modulo2" | bc -l)
     ang=$(echo "scale=20; $angulo1 + $angulo2" | bc -l)
     return 0
-
 }
+
 function DivideRectangulares {
     if [ $# -ne 4 ]; then
         error "DivideRectangulares necesita 4 parámetros." 
@@ -285,8 +276,8 @@ function DivideRectangulares {
     polares_a_rectangulares $r $ang
 
     return 0
-
 }
+
 function DividePolares {
     if [ $# -ne 4 ]; then
         error "DividePolares necesita 4 parámetros."
@@ -315,27 +306,6 @@ function texto_rectangulares {
     esac
 }
 
-# Escribe el número complejo mod arg como "mod arg" (con espacio). SE PUEDE USAR CUALQUIERA DE LAS 2
-function TextoPolares {
-    local TP_M=$1 #modulo
-    local TP_A=$2 #argumento (ya viene en la unidad actual: grados o radianes)
-    local TP_VUELTA #una vuelta completa
-
-    if test "$ANGULO" = grados; then
-        TP_VUELTA=360
-    else
-        TP_VUELTA=$(echo "scale=20; 2 * (4*a(1))" | bc -l)
-    fi
-
-    #mientras el angulo de una vuelta o mas, le quito una vuelta
-    while test "$(echo "$TP_A >= $TP_VUELTA" | bc -l)" = 1; do
-        TP_A=$(calc "$TP_A - $TP_VUELTA")
-    done
-
-    echo "$(fmt "$TP_M") $(fmt "$TP_A")" #imprimo las dos partes redondeadas
-}
-
-
 #Se va a utilizar la convención del angulo que se representa desde -mediavuelta, mediavuelta
 function texto_polares {
     normaliza "$2" #se normaliza el angulo para que quede entre -mediavuelta y mediavuelta
@@ -355,17 +325,16 @@ function normaliza {
     local NZ_V=$(calc "2 * $NZ_M")                 # una vuelta completa
 
     while mayor "$NZ_A" "$NZ_M"; do                # mientras ang > media vuelta
-        NZ_A=$(calc "$NZ_A - $NZ_V")           #   le quito una vuelta
+        NZ_A=$(calc "$NZ_A - $NZ_V")               #le quito una vuelta
     done
     until mayor "$NZ_A" "-$NZ_M"; do               # hasta que ang > -media vuelta
-        NZ_A=$(calc "$NZ_A + $NZ_V")           #   le añado una vuelta
+        NZ_A=$(calc "$NZ_A + $NZ_V")               #le añado una vuelta
     done
 
     ANG=$NZ_A
 
     return 0
 }
-
 
 # es_cero valor
 #   Devuelve 0 (éxito) si el valor es exactamente 0, aunque se escriba 0.0 o -0.
@@ -375,18 +344,7 @@ function es_cero {
 
 #BORRAR
 # fmt valor
-#   Redondea "valor" a DECIMALES decimales y lo escribe. Evita el "-0.0000".
-#function fmt {
-
-#    redondeado=$(echo "scale=2; ($1+0.005)/1" | bc -l) #en un principio con el +0,005 bastaria para un redondeo a las 
-    #centenas, pero el scale solo se activa al hacer una cuenta con bc y no me cortaria donde quiero,
-    #asi que lo he dividido entre 1
-#    if [ $redondeado = -0.00 ]; then
-#    redondeado=0.00 #ahi si me ha salido el problema ese del cero negativo lo cambio por el positivo y tirando
-#    fi
-#}
-#BORRAR
-
+#   Redondea "valor" a DECIMALES decimales y lo escribe. 
 function fmt {
     local F_CERO=$(printf "%.${DECIMALES}f" 0)     #el cero con DECIMALES decimales (0.0000, 0.00...)
     case $(printf "%.${DECIMALES}f" "$1") in
@@ -679,6 +637,8 @@ function evalua_expresion {
     Recorta "$1"
     expresion=$Recortado
 
+    local x1 y1 x2 y2 
+
     local temp="${expresion#*(}" #aislamos cortando todo antes del 1 parentesis (
     local ope1="${temp%%)*}" #aislamos cortando todo despues del 1 parentesis ), o lo que es lo mismo, quitar todo despues del ultimo ) empezando por la izquierda
 
@@ -723,6 +683,9 @@ function evalua_expresion {
         ;;
         "/") EjecutaOpcion  -dp "$x1" "$y1" "$x2" "$y2"
         ;;
+        *) error "operador no válido en '$1'"
+        return 1 
+        ;;
     esac
     else
         if [ "$esPolar1" = true ]; then
@@ -746,9 +709,12 @@ function evalua_expresion {
             ;;
             "/") EjecutaOpcion  -dr "$x1" "$y1" "$x2" "$y2"
             ;;
+            *) error "operador no válido en '$1'"
+            return 1
+            ;;
         esac
-    fi
-    return 0
+    fi 
+
 }
 
 # procesa_linea "línea"
@@ -783,7 +749,7 @@ function procesa_linea {
 function procesa_fichero {
     local fichero="$1"
 
-    # 1. Validar que se ha pasado una ruta y que el fichero existe y es legible
+    # Validar que se ha pasado una ruta y que el fichero existe y es legible
     if [ -z "$fichero" ] || [ ! -f "$fichero" ] || [ ! -r "$fichero" ]; then #1.falta el nombre del fichero, 2. no existe, 3. no se puede leer
         error "El fichero '$fichero' no existe o no se puede leer."
         return 2
@@ -835,13 +801,7 @@ case $1 in
         ;;
 esac
 
-# 3. Si no queda nada por hacer, se muestra la ayuda
-if [ $# -eq 0 ]; then
-    uso >&2
-    exit 2
-fi
-
-# 4. Se decide qué se pide: fichero, expresión matemática u opción
+# 3. Se decide qué se pide: fichero, expresión matemática u opción
 case $1 in
     -f)                                  # -f fichero
         if [ $# -ne 2 ]; then
