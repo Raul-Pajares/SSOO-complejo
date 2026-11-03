@@ -124,15 +124,15 @@ prueba    "-rad y -grad juntos"           "error: no se pueden usar -grad y -rad
 prueba_rc "-h"                            0  -h
 
 echo "=== EXPRESIONES EN NOTACION MATEMATICA"
-prueba "suma rect"             "(2+3i) + (3-2i) = 5.0000+1.0000i"             0  "(2+3i)+(3-2i)"
-prueba "resta rect con j"      "(10-20j) - (21+4j) = -11.0000-24.0000i"       0  "(10-20j)-(21+4j)"
-prueba "multiplica rect"       "(2+3i) * (3-2i) = 12.0000+5.0000i"            0  "(2+3i)*(3-2i)"
-prueba "divide rect"           "(10+5i) / (2-1i) = 3.0000+4.0000i"            0  "(10+5i)/(2-1i)"
-prueba "divide polar"          "(4 45) / (10 -90) = 0.4000_135.0000 grados"   0  "(4 45)/(10 -90)"
-prueba "multiplica polar"      "(2 45) * (2 45) = 4.0000_90.0000 grados"      0  "(2 45)*(2 45)"
-prueba "mezcla rect y polar"   "(2+3i) * (4 45) = -2.8284+14.1421i"           0  "(2+3i)*(4 45)"
-prueba "solo imaginaria"       "(3i) + (4) = 4.0000+3.0000i"                  0  "(3i)+(4)"
-prueba "-rad con polares"      "(4 0.78) / (10 -1.57) = 0.4000_2.3500 radianes"  0  -rad "(4 0.78)/(10 -1.57)"
+prueba "suma rect"             "5.0000+1.0000i"             0  "(2+3i)+(3-2i)"
+prueba "resta rect con j"      "-11.0000-24.0000i"       0  "(10-20j)-(21+4j)"
+prueba "multiplica rect"       "12.0000+5.0000i"            0  "(2+3i)*(3-2i)"
+prueba "divide rect"           "3.0000+4.0000i"            0  "(10+5i)/(2-1i)"
+prueba "divide polar"          "0.4000_135.0000 grados"   0  "(4 45)/(10 -90)"
+prueba "multiplica polar"      "4.0000_90.0000 grados"      0  "(2 45)*(2 45)"
+prueba "mezcla rect y polar"   "-2.8284+14.1421i"           0  "(2+3i)*(4 45)"
+prueba "solo imaginaria"       "4.0000+3.0000i"                  0  "(3i)+(4)"
+prueba "-rad con polares"      "0.4000_2.3500 radianes"  0  -rad "(4 0.78)/(10 -1.57)"
 prueba "falta cerrar parentesis" "error: expresión no válida: '(2+3i)+(3-2i'"  1  "(2+3i)+(3-2i"
 prueba "operador no valido"    "error: operador no válido en '(2+3i)x(3-2i)'" 1  "(2+3i)x(3-2i)"
 prueba "operando no valido"    "error: operando no válido: '2+a'"             1  "(2+a)+(1)"
@@ -143,12 +143,12 @@ echo "=== FICHERO (-f)"
 prueba    "-f sin fichero"      "error: uso: complejo.sh [-grad|-rad] -f fichero"  2  -f
 prueba    "-f con dos ficheros" "error: uso: complejo.sh [-grad|-rad] -f fichero"  2  -f a b
 prueba    "fichero que no existe" "error: El fichero 'noexiste.txt' no existe o no se puede leer."  2  -f noexiste.txt
-prueba_f  "fichero correcto" "$(printf '(2+3i) + (3-2i) = 5.0000+1.0000i\n(4 45) / (10 -90) = 0.4000_135.0000 grados')" 0 '(2+3i)+(3-2i)\n(4 45)/(10 -90)\n'
-prueba_f  "vacias y comentarios" "(1+i) + (i) = 1.0000+2.0000i" 0 '\n# comentario\n   \n(1+i)+(i)\n'
-prueba_f  "cambio a radianes" "$(printf '(2 0.5) * (2 0.5) = 4.0000_1.0000 radianes\n(2 90) * (3 90) = 6.0000_180.0000 grados')" 0 'radianes\n(2 0.5)*(2 0.5)\ngrados\n(2 90)*(3 90)\n'
-prueba_f  "-rad como unidad inicial" "(4 0.78) / (10 -1.57) = 0.4000_2.3500 radianes" 0 '(4 0.78)/(10 -1.57)\n' -rad
-prueba_f  "ultima linea sin Enter" "(2+3i) + (3-2i) = 5.0000+1.0000i" 0 '(2+3i)+(3-2i)'
-prueba_f  "errores: sigue y devuelve 1" "$(printf '(2+3i) + (3-2i) = 5.0000+1.0000i\nerror: operando no válido: '"'"'2+a'"'"'\nerror: línea 2: no se pudo realizar la operación\n(1+i) + (1-i) = 2.0000+0.0000i')" 1 '(2+3i)+(3-2i)\n(2+a)+(1)\n(1+i)+(1-i)\n'
+prueba_f  "fichero correcto" "$(printf '5.0000+1.0000i\n0.4000_135.0000 grados')" 0 '(2+3i)+(3-2i)\n(4 45)/(10 -90)\n'
+prueba_f  "vacias y comentarios" "1.0000+2.0000i" 0 '\n# comentario\n   \n(1+i)+(i)\n'
+prueba_f  "cambio a radianes" "$(printf '4.0000_1.0000 radianes\n6.0000_180.0000 grados')" 0 'radianes\n(2 0.5)*(2 0.5)\ngrados\n(2 90)*(3 90)\n'
+prueba_f  "-rad como unidad inicial" "0.4000_2.3500 radianes" 0 '(4 0.78)/(10 -1.57)\n' -rad
+prueba_f  "ultima linea sin Enter" "5.0000+1.0000i" 0 '(2+3i)+(3-2i)'
+prueba_f  "errores: sigue y devuelve 1" "$(printf '5.0000+1.0000i\nerror: operando no válido: '"'"'2+a'"'"'\nerror: línea 2: no se pudo realizar la operación\n2.0000+0.0000i')" 1 '(2+3i)+(3-2i)\n(2+a)+(1)\n(1+i)+(1-i)\n'
 
 echo
 echo "Resultado: $OK pruebas correctas, $MAL con fallo."
