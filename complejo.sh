@@ -3,7 +3,7 @@
 ANGULO=grados
 NOMBRE=${0##*/} #deja solo el fichero, $0 es el path completo del script, ##/ quita todo hasta la última barra, dejando solo el nombre del script
 DECIMALES=4 #numero de decimales a los que redondear el resultado
-    
+export LC_ALL=C # punto decimal: bc escribe con punto y en Encina (idioma español) printf esperaba coma
 function error {
     echo "$NOMBRE: error: $*" >&2 #Se redirige al canal de errores
 }
@@ -79,38 +79,38 @@ function calc {
     #   en grados   -> k = pi/180
     #   en radianes -> k = 1
     if test "$ANGULO" = grados; then #este angulo definido en la parte superior del script es el que se puede cambiar con los parametros -grad y -rad
-        C_K="pi / 180"
+        C_K="p / 180"
     else
         C_K=1
     fi
     # Se manda a bc por una tubería
-    echo "scale = 20; pi = 4 * a(1); k = $C_K; $1" | bc -l
+    echo "scale = 20; p = 4 * a(1); k = $C_K; $1" | bc -l
 }
 
 # mayor a b
 #   Devuelve 0 (éxito) si a > b y 1 si no.
 #   test solo compara enteros, así que la comparación la hace bc.
 function mayor {
-    test "$(echo "($1) > ($2)" | bc -l)" = 1
+    test "$(echo "z = 0; if (($1) > ($2)) z = 1; z" | bc -l)" = 1
 }
 
 function rectangulares_a_polares { 
-r=$(calc "sqrt(($1^2)+($2^2))")
+    r=$(calc "sqrt(($1^2)+($2^2))")
 
     # El ángulo se calcula primero en radianes, según el cuadrante
     if mayor "$1" 0; then                          # x > 0
         ang=$(calc "a(($2) / ($1))")
     elif mayor 0 "$1"; then                        # x < 0
         if mayor 0 "$2"; then                      #   y < 0
-            ang=$(calc "a(($2) / ($1)) - pi")
+            ang=$(calc "a(($2) / ($1)) - p")
         else                                       #   y >= 0
-            ang=$(calc "a(($2) / ($1)) + pi")
+            ang=$(calc "a(($2) / ($1)) + p")
         fi
     else                                           # x = 0
         if mayor "$2" 0; then                      #   y > 0
-            ang=$(calc "pi / 2")
+            ang=$(calc "p / 2")
         elif mayor 0 "$2"; then                    #   y < 0
-            ang=$(calc "-pi / 2")
+            ang=$(calc "-p / 2")
         else                                       #   y = 0 (el origen)
             ang=0
         fi
@@ -118,7 +118,7 @@ r=$(calc "sqrt(($1^2)+($2^2))")
 
     # Si se trabaja en grados, se pasa de radianes a grados
     if test "$ANGULO" = grados; then
-        ang=$(calc "($ang) * 180 / pi")
+        ang=$(calc "($ang) * 180 / p")
     fi
 
     return 0
@@ -227,8 +227,7 @@ function MultiplicaRectangulares {
     local a2=$ang
 
     MultiplicaPolares $m1 $a1 $m2 $a2
-    if [ $# != 4 ]; then
-       error "MultiplicaRectangulares necesita 4 parámetros."
+    if [ $? != 0 ]; then
        return 1
     fi
 
@@ -319,7 +318,7 @@ function normaliza {
     if test "$ANGULO" = grados; then
         NZ_M=180
     else
-        NZ_M=$(calc "pi")
+        NZ_M=$(calc "p")
     fi
 
     local NZ_V=$(calc "2 * $NZ_M")                 # una vuelta completa
@@ -339,10 +338,10 @@ function normaliza {
 # es_cero valor
 #   Devuelve 0 (éxito) si el valor es exactamente 0, aunque se escriba 0.0 o -0.
 function es_cero {
-    test "$(echo "$1 == 0" | bc -l)" = 1
+    test "$(echo "z = 0; if (($1) == 0) z = 1; z" | bc -l)" = 1
 }
 
-#BORRAR
+
 # fmt valor
 #   Redondea "valor" a DECIMALES decimales y lo escribe. 
 function fmt {
@@ -358,7 +357,11 @@ function fmt {
 #   Devuelve 0 si lo son y 1 si alguno no lo es, avisando con error.
 function CompruebaNumeros {
     while [ $# != 0 ]; do #mientras el total de parametros(que ira quitando uno por el shift al final de cada iteracion) no sea 0 seguimos verificando
-        if ! es_numero "$1"; then #si tu haces un if 1 se ejecuta siempre, asi que aqui como es_numero da un 0, si lo cambio a lo contrario ejecuta el if
+        case $1 in
+            +*) error "'$1': no se admite el signo + delante"
+            return 1 ;; #sino se genera un bucle infinito
+        esac
+        if ! es_numero "$1"; then #el ! invierte el resultado: entra si es_numero falla (no es un número)
             error "'$1' no es un número válido"
             return 1
         fi
@@ -643,6 +646,8 @@ function evalua_expresion {
     local ope1="${temp%%)*}" #aislamos cortando todo despues del 1 parentesis ), o lo que es lo mismo, quitar todo despues del ultimo ) empezando por la izquierda
 
     local resto="${expresion#*)}" #dejo solo el operador y el 2 operando
+    Recorta "$resto" #quito los espacios que pueda haber antes del operador
+    resto=$Recortado
     local operador="${resto:0:1}" #cojo el primer caracter del resto que es el operador
 
     temp="${resto#*(}" #elimino todo antes del primer (
@@ -651,28 +656,26 @@ function evalua_expresion {
     local esPolar1=false
     local esPolar2=false
 
-    case "$ope1" in #si tiene espacio es que es polar y activamos que el operando 1 lo es
-        *" "*) esPolar1=true ;;
-    esac
-
-    case "$ope2" in
-        *" "*) esPolar2=true ;; #lo mismo que el anterior
-    esac
-
     parse_operando "$ope1"
     if [ $? != 0 ]; then
      return 1
     fi
     x1="$P_A"
     y1="$P_B"
+    if [ "$P_T" = p ]; then #parse_operando deja en P_T si es polar (p) o rectangular (r)
+        esPolar1=true
+    fi
+
     parse_operando "$ope2"
     if [ $? != 0 ]; then
         return 1
      fi
     x2="$P_A"
     y2="$P_B"
-
-    #trabajo en proceso
+    if [ "$P_T" = p ]; then #parse_operando deja en P_T si es polar (p) o rectangular (r)
+        esPolar2=true
+    fi
+    
     if [ "$esPolar1" = true ] && [ "$esPolar2" = true ]; then
     case "$operador" in
         "+") EjecutaOpcion -sp "$x1" "$y1" "$x2" "$y2"
