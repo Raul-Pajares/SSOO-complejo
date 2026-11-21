@@ -21,7 +21,7 @@ int main(int argc, char *argv[]){
         if(strcmp("normal", argv[2])&&strcmp("veloz", argv[2])){
             fprintf(stderr, "La velocidad introducida no es ni veloz ni normal\n");
             return 1;
-        }
+        } 
         else{
             velocidad=argv[2];
         }
