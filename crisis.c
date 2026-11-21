@@ -5,10 +5,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include<time.h>
-#include <fcntl.h> 
+#include <fcntl.h>
+#include <signal.h>
+
+#define MAX_HIJOS 34
+static pid_t hijos[MAX_HIJOS]; //para albergar los pids de todos los hijos
+static int numeroHijos = 0; //para contar el numero de hijos que tienen
+void manejarSigterm(int sig);
 
 void decrementarProceso(void);
-int puedeCrearProceso();
+int puedeCrearProceso(int n_max_procs);
 
 int main(int argc, char *argv[]){
     srand(time(NULL));
@@ -34,8 +40,14 @@ int main(int argc, char *argv[]){
         }
     }
 
+    struct sigaction ss{
+        ss.sa_handler=manejarSigterm;
+        sigemptyset(&ss.sa_mask);
+        ss.sa_flags=0;
+        sigaction(SIGTERM, &ss, NULL);
+    }
     //PREPARADOS DEL FICHERO Y DATOS DE LA MATRIZ
-    int pidMatriz=getpid();
+    pid_t pidMatriz=getpid();
 
     char buffer[64];//Imprimimos el pid del padre inicial antes de empezar a crear hijos
     sprintf(buffer, "V(%d)\n", getpid());
@@ -53,10 +65,7 @@ int main(int argc, char *argv[]){
         if(!strcmp(velocidad,"normal")) sleep(rand()%4+1);
 
             if(getpid()!=pidMatriz&&(rand()%2!=0)){//si no soy la matriz padre ni coincide que quiero crear, entonces destruyo
-                decrementarProceso();
-                sprintf(buffer, "M(%d)\n", getpid());
-                write(1, buffer, strlen(buffer));
-                exit(0);
+                manejarSigterm(SIGTERM);
             }
             else{//o soy la matriz padre o me tocó crear proceso
                 if(puedeCrearProceso(n_max_procs)){
@@ -66,10 +75,13 @@ int main(int argc, char *argv[]){
                         return 1;
                     }
                     else if(pid==0){
+                        numeroHijos=0;
                         sprintf(buffer, "V(%d)\n", getpid());
                         write(1, buffer, strlen(buffer));
                     }
                     else if(pid>0){
+                        hijos[numeroHijos]=pid;//metemos el pid de su hijo en el array de sus hijos
+                        numeroHijos++;//ha tenido un nuevo hijo
                     }
                 }
 
@@ -118,5 +130,17 @@ int puedeCrearProceso(int n_max_procs){
     lockf(fd, F_ULOCK, 0);//DESBLOQUEO------
     close(fd);
     return exito;
+
+}
+
+void manejarSigterm(int sig){
+    for(int i=0; i<numeroHijos;i++){
+        kill(hijos[i], SIGTERM);
+    }
+    decrementarProceso();
+    char buffer[64];
+    sprintf(buffer, "M(%d)\n", getpid());
+    write(1, buffer, strlen(buffer));
+    exit(0);
 
 }
