@@ -3,7 +3,12 @@
 #include<string.h>
 #include<unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include<time.h>
+#include <fcntl.h> 
+
+void decrementarProceso(void);
+int puedeCrearProceso();
 
 int main(int argc, char *argv[]){
     srand(time(NULL));
@@ -29,31 +34,89 @@ int main(int argc, char *argv[]){
         }
     }
 
-    //COMIENZO DE LOS FORKS()
+    //PREPARADOS DEL FICHERO Y DATOS DE LA MATRIZ
+    int pidMatriz=getpid();
+
     char buffer[64];//Imprimimos el pid del padre inicial antes de empezar a crear hijos
     sprintf(buffer, "V(%d)\n", getpid());
     write(1, buffer, strlen(buffer));
+    int fd = open("contador.txt", O_RDWR | O_CREAT | O_TRUNC, 0644);
+    if(fd==-1){
+        perror("No se ha podido abrir el fichero");
+        exit(1);
+    }
+    sprintf(buffer, "1\n");
+    write(fd, buffer, strlen(buffer));
+    close(fd);
+    //COMIENZO DEL TRABAJO CON LOS HIJOS
     while(1){
         if(!strcmp(velocidad,"normal")) sleep(rand()%4+1);
-        pid_t pid=fork();
-        if(pid==-1){
-            perror("No se ha podido crear ningun proceso");
-            return 1;
-        }
-        else if(pid==0){
-            sprintf(buffer, "V(%d)\n", getpid());
-            write(1, buffer, strlen(buffer));
 
-            int opcion=rand()%2;
-            if(opcion!=0){
+            if(getpid()!=pidMatriz&&(rand()%2!=0)){//si no soy la matriz padre ni coincide que quiero crear, entonces destruyo
+                decrementarProceso();
                 sprintf(buffer, "M(%d)\n", getpid());
                 write(1, buffer, strlen(buffer));
                 exit(0);
             }
-        }
-        else if(pid>0){
-        }
-    }
+            else{//o soy la matriz padre o me tocó crear proceso
+                if(puedeCrearProceso(n_max_procs)){
+                    pid_t pid=fork();
+                    if(pid==-1){
+                        perror("No se ha podido crear ningun proceso");
+                        return 1;
+                    }
+                    else if(pid==0){
+                        sprintf(buffer, "V(%d)\n", getpid());
+                        write(1, buffer, strlen(buffer));
+                    }
+                    else if(pid>0){
+                    }
+                }
+
+                }
+            }
 
     return 0;
+}
+
+void decrementarProceso(){
+    char procesos[4];
+
+    int fd = open("contador.txt", O_RDWR);
+    if(fd==-1) return;//como es void vuelvo sin hacer nada
+
+    lockf(fd, F_LOCK, 0); //BLOQUEO------
+    lseek(fd, 0, SEEK_SET);
+    read(fd, procesos, sizeof(procesos)-1);
+    int procesosVivos=atoi(procesos)-1;
+    lseek(fd, 0, SEEK_SET); // Volvemos al principio para sobrescribir
+    sprintf(procesos, "%d\n", procesosVivos);
+    write(fd, procesos, strlen(procesos));
+    lockf(fd, F_ULOCK, 0);//DESBLOQUEO------
+    close(fd);
+}
+
+int puedeCrearProceso(int n_max_procs){
+    int exito=0;
+    int fd = open("contador.txt", O_RDWR);
+    char procesos[4]; //le pongo 4 por que son maximo numeros de 2 cifras mas el caracter nulo y el de final de cadena
+    if(fd==-1){
+        return 0; //que en el if qeu ejecuto significa que no se puede
+    }
+
+    lockf(fd, F_LOCK, 0); //BLOQUEO------
+    lseek(fd, 0, SEEK_SET);
+    read(fd, procesos, sizeof(procesos)-1);
+    int procesosVivos =atoi(procesos);
+    if(procesosVivos<n_max_procs){
+        procesosVivos++;
+        lseek(fd, 0, SEEK_SET);
+        sprintf(procesos, "%d\n", procesosVivos);
+        write(fd, procesos, strlen(procesos));
+        exito=1;
+    }
+    lockf(fd, F_ULOCK, 0);//DESBLOQUEO------
+    close(fd);
+    return exito;
+
 }
