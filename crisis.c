@@ -11,8 +11,8 @@
 #define MAX_HIJOS 34
 static pid_t hijos[MAX_HIJOS]; //para albergar los pids de todos los hijos
 static int numeroHijos = 0; //para contar el numero de hijos que tienen
+void manejarSigint(int sig);
 void manejarSigterm(int sig);
-
 void decrementarProceso(void);
 int puedeCrearProceso(int n_max_procs);
 
@@ -40,12 +40,16 @@ int main(int argc, char *argv[]){
         }
     }
 
-    struct sigaction ss{
+    struct sigaction ss;
         ss.sa_handler=manejarSigterm;
         sigemptyset(&ss.sa_mask);
         ss.sa_flags=0;
         sigaction(SIGTERM, &ss, NULL);
-    }
+    struct sigaction sigint;
+        sigint.sa_handler = manejarSigint;
+        sigemptyset(&sigint.sa_mask);
+        sigint.sa_flags = 0;
+        sigaction(SIGINT, &sigint, NULL);
     //PREPARADOS DEL FICHERO Y DATOS DE LA MATRIZ
     pid_t pidMatriz=getpid();
 
@@ -143,4 +147,13 @@ void manejarSigterm(int sig){
     write(1, buffer, strlen(buffer));
     exit(0);
 
+}
+
+void manejarSigint(int sig){
+    for(int i=0; i<numeroHijos; i++){
+        kill(hijos[i], SIGTERM);
+    }
+    unlink("contador.txt");
+    printf("Sistema acabado correctamente");
+    exit(0);
 }
