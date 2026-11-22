@@ -44,7 +44,9 @@ int main(int argc, char *argv[]){
             velocidad=argv[2];
         }
     }
-    printf("Numero maximo de procesos pasado por linea de ordenes: %d\n", n_max_procs);
+    char mensaje[128];
+    sprintf(mensaje, "Numero maximo de procesos pasado por linea de ordenes: %d\n", n_max_procs);
+    write(1, mensaje, strlen(mensaje));
     pidMatriz=getpid();
     struct sigaction ss;
         ss.sa_handler=manejarSigterm;
@@ -91,7 +93,7 @@ int main(int argc, char *argv[]){
         exit(1);
     }
     if(write(fd, &uno, sizeof(int))==-1){
-        perror("Error abriendo el fichero");
+        perror("Error escribiendo el fichero");
         close(fd);
         exit(1);
     }
@@ -239,6 +241,9 @@ void manejarSigint(int sig){
         }
 
         unlink("contador.txt");
+        char buffer[64];
+        sprintf(buffer, "M(%d)\n", getpid());
+        write(1, buffer, strlen(buffer));
         write(1, "Programa acabado correctamente\n", strlen("Programa acabado correctamente\n"));
         exit(0);
     }
