@@ -24,7 +24,6 @@ int puedeCrearProceso(int n_max_procs);
 int main(int argc, char *argv[]){
     srand(time(NULL));
     char *velocidad="normal";
-
     //VERIFICACIONES DE LOS PARAMETROS ANTES DE EMPEZAR
     if(argc!=2&&argc!=3){
         fprintf(stderr, "Error, hemos recibido un numero de parametros inadecuado\n");
@@ -82,7 +81,7 @@ int main(int argc, char *argv[]){
     //PREPARADOS DEL FICHERO Y DATOS DE LA MATRIZ
     int uno=1;
     char buffer[64]={0};//Imprimimos el pid del padre inicial antes de empezar a crear hijos
-    sprintf(buffer, "V(%d)\n", getpid());
+    sprintf(buffer, "V(%d)\n", (int)getpid());
     if(write(1, buffer, strlen(buffer))==-1){
         perror("Error imprimiendo pid");
         exit(1);
@@ -117,7 +116,7 @@ int main(int argc, char *argv[]){
                 else if(pid==0){
                     numeroHijos=0;
                     srand(time(NULL) ^ getpid()); //lo cambie y lo añadi porque siempre salian los mismos numeros
-                    sprintf(buffer, "V(%d)\n", getpid());
+                    sprintf(buffer, "V(%d)\n", (int)getpid());
                         if(write(1, buffer, strlen(buffer))==-1){
                             perror("Error imprimiendo pid");
                             exit(1);
@@ -196,7 +195,9 @@ int puedeCrearProceso(int n_max_procs){
 
 void manejarSigterm(int sig){
     int estado;
-    for(int i=0; i<numeroHijos;i++){
+    int i;
+    (void)sig;
+    for(i=0; i<numeroHijos;i++){
         kill(hijos[i], SIGTERM);
     }
 
@@ -214,7 +215,7 @@ void manejarSigterm(int sig){
     }
 
     char buffer[64]={0};
-    sprintf(buffer, "M(%d)\n", getpid());
+    sprintf(buffer, "M(%d)\n", (int)getpid());
     write(1, buffer, strlen(buffer));
     exit(0);
 
@@ -222,8 +223,10 @@ void manejarSigterm(int sig){
 
 void manejarSigint(int sig){
     int estado;
+    int i;
+    (void)sig;
     if (getpid() == pidMatriz){
-        for(int i=0; i<numeroHijos; i++){
+        for(i=0; i<numeroHijos; i++){
             kill(hijos[i], SIGTERM);
         }
 
@@ -242,7 +245,7 @@ void manejarSigint(int sig){
 
         unlink("contador.txt");
         char buffer[64];
-        sprintf(buffer, "M(%d)\n", getpid());
+        sprintf(buffer, "M(%d)\n", (int)getpid());
         write(1, buffer, strlen(buffer));
         write(1, "Programa acabado correctamente\n", strlen("Programa acabado correctamente\n"));
         exit(0);
@@ -252,9 +255,11 @@ void manejarSigint(int sig){
 void manejarSigchld(int sig) {
     int estado;
     pid_t pid;
+    int i;
+    (void)sig;
 
     while ((pid=waitpid(-1, &estado, WNOHANG))>0){
-        for (int i=0;i<numeroHijos;i++){
+        for (i=0;i<numeroHijos;i++){
             if (hijos[i]==pid){
                 hijos[i]=hijos[numeroHijos - 1];
                 numeroHijos--;
