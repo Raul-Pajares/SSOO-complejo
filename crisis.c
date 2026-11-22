@@ -10,6 +10,8 @@
 
 #define MAX_HIJOS 34
 static pid_t hijos[MAX_HIJOS]; //para albergar los pids de todos los hijos
+static pid_t pidMatriz;
+
 static int numeroHijos = 0; //para contar el numero de hijos que tienen
 void manejarSigint(int sig);
 void manejarSigterm(int sig);
@@ -40,6 +42,7 @@ int main(int argc, char *argv[]){
         }
     }
 
+    pidMatriz=getpid();
     struct sigaction ss;
         ss.sa_handler=manejarSigterm;
         sigemptyset(&ss.sa_mask);
@@ -50,10 +53,15 @@ int main(int argc, char *argv[]){
         sigemptyset(&sigint.sa_mask);
         sigint.sa_flags = 0;
         sigaction(SIGINT, &sigint, NULL);
+    
+    struct sigaction saHijo;
+        saHijo.sa_handler = SIG_IGN;
+        sigemptyset(&saHijo.sa_mask);
+        saHijo.sa_flags = 0; 
+        sigaction(SIGCHLD, &saHijo, NULL);
     //PREPARADOS DEL FICHERO Y DATOS DE LA MATRIZ
-    pid_t pidMatriz=getpid();
 
-    char buffer[64];//Imprimimos el pid del padre inicial antes de empezar a crear hijos
+    char buffer[64]={0};//Imprimimos el pid del padre inicial antes de empezar a crear hijos
     sprintf(buffer, "V(%d)\n", getpid());
     write(1, buffer, strlen(buffer));
     int fd = open("contador.txt", O_RDWR | O_CREAT | O_TRUNC, 0644);
@@ -76,6 +84,7 @@ int main(int argc, char *argv[]){
                     pid_t pid=fork();
                     if(pid==-1){
                         perror("No se ha podido crear ningun proceso");
+                        decrementarProceso();
                         return 1;
                     }
                     else if(pid==0){
@@ -96,7 +105,7 @@ int main(int argc, char *argv[]){
 }
 
 void decrementarProceso(){
-    char procesos[4];
+    char procesos[4]={0};
 
     int fd = open("contador.txt", O_RDWR);
     if(fd==-1) return;//como es void vuelvo sin hacer nada
@@ -108,6 +117,7 @@ void decrementarProceso(){
     lseek(fd, 0, SEEK_SET); // Volvemos al principio para sobrescribir
     sprintf(procesos, "%d\n", procesosVivos);
     write(fd, procesos, strlen(procesos));
+    lseek(fd, 0, SEEK_SET);
     lockf(fd, F_ULOCK, 0);//DESBLOQUEO------
     close(fd);
 }
@@ -115,7 +125,7 @@ void decrementarProceso(){
 int puedeCrearProceso(int n_max_procs){
     int exito=0;
     int fd = open("contador.txt", O_RDWR);
-    char procesos[4]; //le pongo 4 por que son maximo numeros de 2 cifras mas el caracter nulo y el de final de cadena
+    char procesos[4]={0}; //le pongo 4 por que son maximo numeros de 2 cifras mas el caracter nulo y el de final de cadena
     if(fd==-1){
         return 0; //que en el if qeu ejecuto significa que no se puede
     }
@@ -131,6 +141,7 @@ int puedeCrearProceso(int n_max_procs){
         write(fd, procesos, strlen(procesos));
         exito=1;
     }
+    lseek(fd, 0, SEEK_SET);
     lockf(fd, F_ULOCK, 0);//DESBLOQUEO------
     close(fd);
     return exito;
@@ -142,7 +153,7 @@ void manejarSigterm(int sig){
         kill(hijos[i], SIGTERM);
     }
     decrementarProceso();
-    char buffer[64];
+    char buffer[64]={0};
     sprintf(buffer, "M(%d)\n", getpid());
     write(1, buffer, strlen(buffer));
     exit(0);
@@ -150,10 +161,12 @@ void manejarSigterm(int sig){
 }
 
 void manejarSigint(int sig){
-    for(int i=0; i<numeroHijos; i++){
-        kill(hijos[i], SIGTERM);
+    if (getpid() == pidMatriz){
+        for(int i=0; i<numeroHijos; i++){
+            kill(hijos[i], SIGTERM);
+        }
+        unlink("contador.txt");
+        write(1, "Programa acabado correctamente\n", strlen("Programa acabado correctamente\n"));
+        exit(0);
     }
-    unlink("contador.txt");
-    printf("Sistema acabado correctamente");
-    exit(0);
 }
