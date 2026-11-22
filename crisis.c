@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
             velocidad=argv[2];
         }
     }
-
+    printf("Numero maximo de procesos pasado por linea de ordenes: %d", n_max_procs);
     pidMatriz=getpid();
     struct sigaction ss;
         ss.sa_handler=manejarSigterm;
