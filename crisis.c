@@ -56,12 +56,12 @@ int main(int argc, char *argv[]){
             velocidad=argv[2];
         }
     }
-    char mensaje[128];
-
+    
     //BORRAR
+    //char mensaje[128];
     /////sprintf(mensaje, "Numero maximo de procesos pasado por linea de ordenes: %d\n", n_max_procs);
+    //write(1, mensaje, strlen(mensaje));
 
-    write(1, mensaje, strlen(mensaje));
     pidMatriz=getpid();
     struct sigaction ss;
         ss.sa_handler=manejarSigterm;
