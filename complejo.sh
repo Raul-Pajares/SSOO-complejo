@@ -11,7 +11,7 @@ function error {
 function uso {
     echo "Uso:"
     echo "  $NOMBRE [-grad|-rad] OPCION operandos..."
-    echo "  $NOMBRE [-grad|-rad] \"(a+bi)op(c+di)\"" 
+    echo "  $NOMBRE [-grad|-rad] \"(a+bi)op(c+di)\""  
     echo "  $NOMBRE [-grad|-rad] -f fichero"
     echo "  $NOMBRE -h"
     echo

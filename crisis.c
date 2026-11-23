@@ -29,12 +29,25 @@ int main(int argc, char *argv[]){
         fprintf(stderr, "Error, hemos recibido un numero de parametros inadecuado\n");
         return 1;
     }
+    //COMPROBACIÓN DE NÚMEROS ENTEROS
+    int i;
+    for(i=0; argv[1][i]!='\0'; i++){//solo se admiten digitos
+        if(argv[1][i]<'0'||argv[1][i]>'9'||i>=3){
+            fprintf(stderr, "Error, el numero maximo de procesos debe ser un entero entre 3 y 34\n");
+            return 1;
+        }
+    }
+
     int n_max_procs=atoi(argv[1]);
     if(n_max_procs<3||n_max_procs>34){
         fprintf(stderr, "Error, el numero maximo de procesos esta fuera del rango(3-34)\n");
         return 1;
     }
     if(argc==3){
+        //En C el 0 es falso, por lo que si no son iguales, entra en el if
+
+        //___AUNQUE YO LO PONDRÍA CON !=0_____
+
         if(strcmp("normal", argv[2])&&strcmp("veloz", argv[2])){
             fprintf(stderr, "La velocidad introducida no es ni veloz ni normal\n");
             return 1;
@@ -44,7 +57,10 @@ int main(int argc, char *argv[]){
         }
     }
     char mensaje[128];
-    sprintf(mensaje, "Numero maximo de procesos pasado por linea de ordenes: %d\n", n_max_procs);
+
+    //BORRAR
+    /////sprintf(mensaje, "Numero maximo de procesos pasado por linea de ordenes: %d\n", n_max_procs);
+
     write(1, mensaje, strlen(mensaje));
     pidMatriz=getpid();
     struct sigaction ss;
@@ -111,7 +127,6 @@ int main(int argc, char *argv[]){
                 if(pid==-1){
                     perror("No se ha podido crear ningun proceso");
                     decrementarProceso();
-                    return 1;
                 }
                 else if(pid==0){
                     numeroHijos=0;
@@ -196,6 +211,14 @@ int puedeCrearProceso(int n_max_procs){
 void manejarSigterm(int sig){
     int estado;
     int i;
+    //AÑADIDO
+    /* La matriz comparte esta manejadora con los hijos: si recibe SIGTERM
+    hace el mismo cierre que con SIGINT. */
+    if(getpid()==pidMatriz){//la matriz hace el mismo cierre que con CTRL-C
+        manejarSigint(sig);
+        return;
+    }
+
     (void)sig;
     for(i=0; i<numeroHijos;i++){
         kill(hijos[i], SIGTERM);
